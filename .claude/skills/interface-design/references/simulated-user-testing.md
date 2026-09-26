@@ -138,6 +138,17 @@ node scripts/flow_meter.js merge flow-report-x/report.json dudas.json
 Cuenta una duda por paso distinto: si dos personas dudan en el mismo paso, es una duda con dos
 testigos (anota ambas personas en la nota). Así el CI no se infla solo por correr más personas.
 
+### Por qué no basta con el flujo guionado
+
+`run` sigue la ruta que tú escribiste, con selectores que ya saben dónde está todo; por eso no
+detecta los fallos que aparecen cuando alguien actúa como persona. Caso real al validar la plantilla
+de esta skill: el flujo medido pasaba perfecto, pero la persona novata, al hacer click en el monto
+mientras editaba el nombre, necesitó **dos clicks**. El primer click guardaba el nombre, se volvía a
+dibujar la tabla y el elemento que había recibido el click desaparecía. En la misma ronda salieron:
+etiquetas de estado que no parecían tocables, atajos de teclado que en móvil parecían contadores,
+avisos amontonados que tapaban filas y un cliente llenado por default sin explicar de dónde venía.
+Ninguno aparecía en la medición. Mide con `run` y valida con personas: son complementarios.
+
 ## 7. Límites (dilo siempre)
 
 Los usuarios simulados encuentran problemas de **descubribilidad, claridad de etiquetas, jerarquía

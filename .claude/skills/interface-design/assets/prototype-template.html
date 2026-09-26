@@ -225,6 +225,8 @@ tr:hover .row-actions, tr.focused .row-actions, tr:focus-within .row-actions { o
   font-size: 12.5px; font-weight: 500; transition: filter .12s, transform .08s;
 }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+button.pill::after { content: ""; width: 5px; height: 5px; margin: -2px 0 0 1px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); opacity: .55; }
+.menu .pill::after { display: none; }
 .pill:hover { filter: brightness(0.96) saturate(1.2); }
 .pill:active { transform: scale(.97); }
 .tone-neutral { background: var(--neutral-soft); color: var(--text-2); }
@@ -233,6 +235,9 @@ tr:hover .row-actions, tr.focused .row-actions, tr:focus-within .row-actions { o
 .tone-danger { background: var(--danger-soft); color: var(--danger); }
 
 tr.flash-success td { animation: flash 1s var(--ease); }
+td.saved { animation: saved 1.1s var(--ease); }
+@keyframes saved { 0%, 30% { background: var(--accent-soft); } 100% { background: transparent; } }
+.hint { margin-left: 6px; font-size: 12px; color: var(--text-3); }
 @keyframes flash { 0% { background: var(--success-soft); } 100% { background: transparent; } }
 tr.enter td { animation: enter .3s var(--ease); }
 @keyframes enter { from { opacity: 0; transform: translateY(-4px); } }
@@ -362,6 +367,10 @@ tr.enter td { animation: enter .3s var(--ease); }
   .c-check, .c-updated { display: none; }
   td:empty { display: none; }
 }
+@media (hover: none) and (pointer: coarse) {
+  kbd, .menu button kbd { display: none; }
+  .row-actions { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
@@ -482,6 +491,7 @@ tr.enter td { animation: enter .3s var(--ease); }
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<datalist id="clients"></datalist>
 
 <aside class="hud" id="hud" aria-label="Medidor de interacción">
   <header><svg class="i"><use href="#i-gauge"/></svg>Medidor<kbd>`</kbd></header>
@@ -570,7 +580,7 @@ function rowHTML(r) {
   return `<tr data-id="${r.id}" tabindex="-1" class="${cls}" aria-selected="${S.selected.has(r.id)}">
     <td class="c-check"><input type="checkbox" ${S.selected.has(r.id) ? 'checked' : ''} aria-label="Seleccionar ${esc(r.title)}"></td>
     <td class="c-title"><span class="editable" data-field="title" title="Click para editar">${esc(r.title) || '<span style="color:var(--text-3)">Sin título</span>'}</span></td>
-    <td class="c-client">${esc(r.client)}</td>
+    <td class="c-client"><span class="editable" data-field="client" title="Click para cambiar">${esc(r.client)}</span>${r.clientDefault ? '<span class="hint" title="Se llenó con el último cliente que usaste">· último usado</span>' : ''}</td>
     <td class="c-amount num"><span class="editable" data-field="amount" title="Click para editar">${money.format(r.amount)}</span></td>
     <td class="c-status"><button class="pill tone-${st.tone}" data-action="status" aria-haspopup="menu" title="Cambiar estado (S)">${st.label}</button></td>
     <td class="c-updated">${ago(r.updated)}</td>
@@ -676,6 +686,7 @@ function toast(msg, entry) {
     const i = undoStack.indexOf(entry); if (i > -1) undoStack.splice(i, 1);
     entry.restore(); close();
   };
+  $$('#toasts .toast').forEach(o => o.remove()); // uno a la vez: no tapan la lista y el último es el relevante
   $('#toasts').append(t);
   setTimeout(close, ms);
 }
@@ -704,21 +715,29 @@ function duplicate(id) {
 }
 function newRow(title = '') {
   S.view = 'data'; S.filter = 'all'; S.query = ''; $('#search').value = '';
-  const r = { id: nextId++, title, client: S.lastClient, amount: 0, status: 'draft', updated: Date.now(), isNew: !title };
+  const r = { id: nextId++, title, client: S.lastClient, clientDefault: true, amount: 0, status: 'draft', updated: Date.now(), isNew: !title };
   commit('crear', () => DATA.unshift(r), { toastMsg: title ? `Creada: ${title}` : undefined });
   focusRow(r.id, { enter: true });
   startEdit(r.id, title ? 'amount' : 'title');
 }
 
 /* ---------- Edición en línea ---------- */
+let pendingEdit = null;
+document.addEventListener('pointerdown', e => {
+  const ed = e.target.closest('.editable'); const tr = ed?.closest('tr[data-id]');
+  pendingEdit = ed && tr ? { id: Number(tr.dataset.id), field: ed.dataset.field, t: Date.now() } : null;
+}, true);
 function startEdit(id, field) {
   const tr = $(`tr[data-id="${id}"]`); if (!tr) return;
   const span = tr.querySelector(`[data-field="${field}"]`); const r = byId(id); if (!span || !r) return;
   const input = document.createElement('input');
   input.className = 'cell-input' + (field === 'amount' ? ' num' : '');
-  input.value = field === 'amount' ? (r.amount || '') : r.title;
-  if (field === 'amount') { input.inputMode = 'numeric'; input.placeholder = '$0'; } else input.placeholder = `Nombre de la ${ENTITY.singular}`;
-  input.setAttribute('aria-label', field === 'amount' ? 'Monto' : 'Título');
+  input.value = field === 'amount' ? (r.amount || '') : r[field];
+  if (field === 'amount') { input.inputMode = 'numeric'; input.placeholder = '$0'; }
+  else if (field === 'client') { input.placeholder = 'Cliente'; input.setAttribute('list', 'clients'); }
+  else input.placeholder = `Nombre de la ${ENTITY.singular} · Enter guarda`;
+  input.setAttribute('aria-label', { amount: 'Monto', client: 'Cliente', title: 'Título' }[field]);
+  tr.querySelector('.hint')?.remove();
   span.replaceWith(input); input.focus(); input.select();
   let done = false;
   const finish = save => {
@@ -726,10 +745,17 @@ function startEdit(id, field) {
     const raw = input.value.trim();
     if (field === 'title' && r.isNew && !raw) { DATA = DATA.filter(x => x !== r); render(); return; }
     const val = field === 'amount' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
-    if (save && val !== r[field] && !(field === 'title' && !raw)) {
-      commit(`editar ${field === 'amount' ? 'monto' : 'título'}`, () => { r[field] = val; r.updated = Date.now(); delete r.isNew; }, { toastMsg: 'Guardado' });
+    if (save && val !== r[field] && !(field !== 'amount' && !raw)) {
+      // Edición = feedback local (la celda destella) + indicador "Guardado"; ⌘Z deshace. Sin toast: se reserva para acciones de mayor consecuencia.
+      commit(`editar ${{ amount: 'monto', client: 'cliente', title: 'título' }[field]}`, () => {
+        r[field] = val; r.updated = Date.now(); delete r.isNew;
+        if (field === 'client') { delete r.clientDefault; S.lastClient = val; }
+      });
+      $(`tr[data-id="${id}"] [data-field="${field}"]`)?.closest('td')?.classList.add('saved');
     } else { delete r.isNew; render(); }
     focusRow(id);
+    // Si el blur vino de un click sobre otro valor editable, ábrelo: el render reemplazó el elemento clicado.
+    if (pendingEdit && Date.now() - pendingEdit.t < 600 && !(pendingEdit.id === id && pendingEdit.field === field)) { const p = pendingEdit; pendingEdit = null; startEdit(p.id, p.field); }
   };
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); finish(true); }
@@ -930,7 +956,7 @@ $('#rows').addEventListener('click', e => {
   const tr = e.target.closest('tr[data-id]'); if (!tr) return;
   const id = Number(tr.dataset.id);
   if (e.target.matches('input[type="checkbox"]')) { toggleSelect(id, e.shiftKey); return; }
-  const ed = e.target.closest('.editable'); if (ed) { focusRow(id); startEdit(id, ed.dataset.field); return; }
+  const ed = e.target.closest('.editable'); if (ed) { pendingEdit = null; focusRow(id); startEdit(id, ed.dataset.field); return; }
   const act = e.target.closest('[data-action]')?.dataset.action;
   if (act === 'status') { focusRow(id); openStatusMenu(e.target.closest('[data-action]'), S.selected.has(id) ? [...S.selected] : [id]); return; }
   if (act === 'delete') { removeRows([id]); return; }
@@ -1020,6 +1046,7 @@ $('#h-reset').addEventListener('click', () => { hud.clicks = 0; hud.keys = 0; $(
 function toggleHud() { hudEl.classList.toggle('hidden'); store.set('proto-hud', hudEl.classList.contains('hidden') ? 'off' : 'on'); }
 
 /* ---------- Arranque ---------- */
+$('#clients').innerHTML = [...new Set(DATA.map(r => r.client))].sort().map(c => `<option value="${esc(c)}">`).join('');
 $('#mod-key').textContent = MOD === '⌘' ? '⌘' : 'Ctrl';
 applyTheme(store.get('proto-theme') || 'system');
 if (store.get('proto-density') === 'compact') document.documentElement.dataset.density = 'compact';
