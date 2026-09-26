@@ -1,0 +1,65 @@
+/*
+ * Tokens del prototipo traducidos al tema de shadcn/ui (Tailwind v4, OKLCH).
+ * Pégalo en tu globals.css en lugar de las variables de :root/.dark que trae shadcn,
+ * o copia solo --success, --info y las animaciones si ya tienes tu propio tema.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(98.4% 0.004 265);
+  --foreground: oklch(21% 0.02 265);
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(21% 0.02 265);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(21% 0.02 265);
+  --primary: oklch(52% 0.21 268);
+  --primary-foreground: oklch(99% 0 0);
+  --secondary: oklch(96.4% 0.006 265);
+  --secondary-foreground: oklch(21% 0.02 265);
+  --muted: oklch(96.4% 0.006 265);
+  --muted-foreground: oklch(46% 0.02 265);
+  --accent: oklch(93.5% 0.008 265);
+  --accent-foreground: oklch(21% 0.02 265);
+  --destructive: oklch(52% 0.2 25);
+  --border: oklch(21% 0.02 265 / 0.09);
+  --input: oklch(21% 0.02 265 / 0.16);
+  --ring: oklch(52% 0.21 268);
+  /* Semánticos extra: solo para significado, nunca decoración. */
+  --success: oklch(52% 0.14 152);
+  --info: oklch(52% 0.14 240);
+}
+
+.dark {
+  --background: oklch(16.5% 0.012 265);
+  --foreground: oklch(94% 0.008 265);
+  --card: oklch(20.5% 0.014 265);
+  --card-foreground: oklch(94% 0.008 265);
+  --popover: oklch(20.5% 0.014 265);
+  --popover-foreground: oklch(94% 0.008 265);
+  --primary: oklch(72% 0.15 268);
+  --primary-foreground: oklch(17% 0.02 265);
+  --secondary: oklch(24% 0.016 265);
+  --secondary-foreground: oklch(94% 0.008 265);
+  --muted: oklch(24% 0.016 265);
+  --muted-foreground: oklch(74% 0.014 265);
+  --accent: oklch(28% 0.018 265);
+  --accent-foreground: oklch(94% 0.008 265);
+  --destructive: oklch(72% 0.16 25);
+  --border: oklch(94% 0.01 265 / 0.08);
+  --input: oklch(94% 0.01 265 / 0.15);
+  --ring: oklch(72% 0.15 268);
+  --success: oklch(76% 0.14 152);
+  --info: oklch(76% 0.11 240);
+}
+
+@theme inline {
+  --color-success: var(--success);
+  --color-info: var(--info);
+}
+
+/* Feedback de guardado en la celda y de "ganada" en la fila (duraciones cortas: < 1.2 s). */
+@keyframes saved { 0%, 30% { background: color-mix(in oklch, var(--primary) 12%, transparent); } 100% { background: transparent; } }
+@keyframes flash { 0% { background: color-mix(in oklch, var(--success) 18%, transparent); } 100% { background: transparent; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

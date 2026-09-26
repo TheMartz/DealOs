@@ -2,15 +2,15 @@
 name: interface-design
 description: >-
   Diseñador de interfaces obsesionado con la economía de interacción: cada click, campo, decisión y
-  cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita pantallas,
-  flujos y componentes intuitivos al primer uso, rápidos al uso 1000, bonitos y con un detalle
-  novedoso. Entrega costo de interacción antes/después, decisiones con su porqué y prototipo HTML
-  funcional; mide flujos reales con Playwright y los prueba con usuarios simulados a ciegas. Úsalo
-  SIEMPRE que pidan diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, formulario,
-  flujo, menú, tabla, modal, checkout, onboarding o componente; cuando digan "demasiados
-  pasos/clicks", "es lento de usar", "hazlo más fácil", "que se vea moderno/novedoso", "simplifica
-  este flujo", "más intuitivo"; al compartir una captura de su software; o al pedir medir cuántos
-  clicks cuesta un flujo o probar una interfaz con usuarios.
+  cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita pantallas y
+  flujos intuitivos al primer uso, rápidos al uso 1000, bonitos y con un detalle novedoso. Entrega
+  costo de interacción antes/después y prototipo HTML funcional; mide flujos reales con Playwright,
+  los prueba con usuarios simulados a ciegas, aplica recetas por producto (CRM, punto de venta,
+  bodega, back office, móvil) y lo lleva a React/shadcn verificando paridad. Úsalo SIEMPRE que pidan
+  diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, formulario, flujo, tabla, modal,
+  checkout, onboarding o componente; cuando digan "demasiados clicks", "es lento de usar", "hazlo más
+  fácil", "que se vea moderno", "más intuitivo"; al compartir una captura de su software; o al pedir
+  medir clicks de un flujo, probar con usuarios o pasar un prototipo a código.
 ---
 
 # Interface Design — Menos clicks, más intención
@@ -83,6 +83,10 @@ Define en 4 líneas: **quién** lo usa (rol, contexto físico, dispositivo), **t
 lograr, en sus palabras), **frecuencia**, y **qué pasa si se equivoca**. Todo lo demás se subordina a la
 tarea #1: define la pantalla de entrada y dónde vive la acción primaria.
 
+Identifica el **tipo de producto** y lee su receta en `references/product-recipes.md`: CRM, punto de
+venta, bodega/planta/campo (guantes, escáner, sin señal), back office o app móvil de un gesto. Cada
+una cambia qué es esfuerzo, el presupuesto de la tarea #1, los patrones que ganan y cómo probarlo.
+
 ### 2. Auditar el flujo actual (si existe)
 Escribe el flujo paso a paso y ponle CI a cada paso. Marca los pasos con 🔴 si son eliminables,
 🟡 si se pueden fusionar o automatizar, 🟢 si son esenciales. Si el usuario compartió una captura o
@@ -132,11 +136,12 @@ Los errores dicen qué pasó, qué hacer, y **conservan lo que el usuario escrib
 Siempre entrega un prototipo interactivo, no una imagen. Parte de `assets/prototype-template.html`:
 ya trae tokens claro/oscuro, paleta de comandos ⌘K, toasts con deshacer, edición en línea, navegación
 por teclado y el **Medidor de interacción** (tecla `` ` ``), que cuenta clicks, teclas y tiempo para
-que el usuario compruebe el CI en vivo. Reemplaza los datos de ejemplo por datos realistas del dominio
-del usuario, en español: "Item 1" y "Lorem ipsum" impiden juzgar el diseño.
+que el usuario compruebe el CI en vivo, y densidades cómoda, compacta y **táctil** (targets de 56-64 px
+para guantes y tabletas). Reemplaza los datos de ejemplo por datos realistas del dominio del usuario,
+en español: "Item 1" y "Lorem ipsum" impiden juzgar el diseño.
 
-Si el proyecto ya tiene stack (React, Vue, Tailwind, un design system), respétalo y construye en él;
-el template es para prototipos independientes.
+Si el proyecto ya tiene stack (React, Vue, Tailwind, un design system), respétalo y construye en él
+desde el principio: la plantilla es para prototipos independientes y el paso 9 explica cómo traducir.
 
 Valida el contraste de tu paleta con `python scripts/contrast_check.py "#texto" "#fondo"` (acepta
 varios pares). Texto normal ≥ 4.5:1, texto grande e íconos ≥ 3:1.
@@ -160,6 +165,17 @@ pruébalo:
 Escala al encargo: un componente suelto no necesita personas; un flujo principal o un rediseño sí.
 Si Playwright no está instalado, díselo al usuario con el comando (`npm i -D playwright && npx
 playwright install chromium`) y sigue con el CI estimado, marcándolo como estimado.
+
+### 9. Llevar a producción sin perder nada
+Cuando el prototipo pasó la medición y las personas, tradúcelo al stack del usuario preservando el
+**contrato de interacción** (edición en línea, deshacer en vez de confirmar, ⌘K, atajos, defaults
+etiquetados, estados, feedback optimista, móvil y táctil). Guía, mapeo de componentes, trampas y otros
+stacks en `references/stack-translation.md`. Para React + Tailwind v4 + shadcn/ui hay un port completo
+y verificado en `assets/react-shadcn/` (README con instalación).
+
+Comprueba la paridad con el mismo flujo contra ambas versiones:
+`flow_meter.js run flow.json --url <app>` y `compare proto.json app.json --parity`. El CI de la
+implementación no debe subir; si sube, la salida dice en qué paso. Vale la pena dejarlo en CI.
 
 ---
 
@@ -221,6 +237,8 @@ sus usuarios mejor que tú.
 - [ ] ¿El prototipo es interactivo de verdad y usa datos realistas?
 - [ ] ¿Medí el CI con `flow_meter.js` o lo marqué como estimado?
 - [ ] ¿Un novato simulado, a ciegas, terminó la tarea sin atorarse?
+- [ ] ¿Apliqué la receta del tipo de producto (dispositivo, condiciones, presupuesto)?
+- [ ] Si ya está en código: ¿la paridad con el prototipo pasó (`compare --parity`)?
 
 ## Archivos de referencia
 
@@ -231,7 +249,10 @@ sus usuarios mejor que tú.
 | `references/visual-craft.md` | Definir o ajustar tokens, color, tipografía, espaciado, movimiento |
 | `references/novelty-playbook.md` | Elegir el momento firma y patrones nativos de IA |
 | `references/simulated-user-testing.md` | Probar un flujo con personas simuladas a ciegas |
+| `references/product-recipes.md` | Siempre que el producto sea CRM, POS, bodega/campo, back office o app móvil |
+| `references/stack-translation.md` | Pasar un prototipo aprobado al stack del usuario |
 | `assets/prototype-template.html` | Base de todo prototipo independiente |
+| `assets/react-shadcn/` | Port verificado a React + Tailwind v4 + shadcn/ui |
 | `assets/flows/` | Ejemplos de `flow.json` (sistema anterior vs. prototipo) y fixture `antes-legacy.html` |
-| `scripts/flow_meter.js` | Medir CI real (`run`), explorar como persona (`explore`), `compare`, `merge` |
+| `scripts/flow_meter.js` | Medir CI real (`run`, `--url`), explorar como persona (`explore`), `compare` (`--parity`), `merge` |
 | `scripts/contrast_check.py` | Validar contraste WCAG de la paleta |

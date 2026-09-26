@@ -2,15 +2,47 @@
   "name": "Registrar cotización enviada · prototipo",
   "url": "../prototype-template.html",
   "frequency": "diaria",
-  "hide": ["#hud"],
+  "hide": [
+    "#hud"
+  ],
   "steps": [
-    { "action": "click", "target": "role=button[name=\"Nueva\"]", "note": "Cliente llega prellenado (último usado)" },
-    { "action": "fill", "target": "placeholder=Nombre de la cotización", "value": "Sistema de riego" },
-    { "action": "press", "key": "Tab", "note": "Pasa al monto" },
-    { "action": "fill", "target": "placeholder=Ej. 98000", "value": "98000" },
-    { "action": "press", "key": "Enter", "note": "Autosave" },
-    { "action": "click", "target": "#rows tr:first-child .pill", "note": "Estado en la misma fila" },
-    { "action": "click", "target": "role=menuitem[name=\"Enviada\"]" },
-    { "action": "expect", "target": "#rows tr:first-child .tone-info" }
+    {
+      "action": "click",
+      "target": "role=button[name=\"Nueva\"]",
+      "note": "Cliente llega prellenado (último usado)"
+    },
+    {
+      "action": "fill",
+      "target": "placeholder=Nombre de la cotización",
+      "value": "Sistema de riego"
+    },
+    {
+      "action": "press",
+      "key": "Tab",
+      "note": "Pasa al monto"
+    },
+    {
+      "action": "fill",
+      "target": "placeholder=Ej. 98000",
+      "value": "98000"
+    },
+    {
+      "action": "press",
+      "key": "Enter",
+      "note": "Autosave"
+    },
+    {
+      "action": "click",
+      "target": "#rows tr:first-child [data-action=\"status\"]",
+      "note": "Estado en la misma fila"
+    },
+    {
+      "action": "click",
+      "target": "role=menuitem[name=\"Enviada\"]"
+    },
+    {
+      "action": "expect",
+      "target": "#rows tr:first-child [data-action=\"status\"]:has-text(\"Enviada\")"
+    }
   ]
 }

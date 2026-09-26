@@ -94,6 +94,19 @@
   color-scheme: dark;
 }
 :root[data-density="compact"] { --row-h: 36px; }
+/* Táctil: guantes, tabletas en planta, sol directo. Targets ≥ 56 px, texto ≥ 16 px. */
+:root[data-density="touch"] { --row-h: 64px; }
+:root[data-density="touch"] body { font-size: 16px; }
+:root[data-density="touch"] .btn, :root[data-density="touch"] .icon-btn, :root[data-density="touch"] .cmd-trigger,
+:root[data-density="touch"] .search input { height: 52px; min-width: 52px; }
+:root[data-density="touch"] .segmented button { height: 44px; padding: 0 16px; font-size: 15px; }
+:root[data-density="touch"] .pill { height: 40px; padding: 0 14px; font-size: 15px; }
+:root[data-density="touch"] .row-actions { opacity: 1; }
+:root[data-density="touch"] .row-actions button { width: 48px; height: 48px; }
+:root[data-density="touch"] .c-check input { width: 24px; height: 24px; }
+:root[data-density="touch"] .menu button { height: 52px; font-size: 16px; }
+:root[data-density="touch"] .c-actions { width: 120px; }
+:root[data-density="touch"] .c-updated { display: none; }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -368,7 +381,7 @@ tr.enter td { animation: enter .3s var(--ease); }
   td:empty { display: none; }
 }
 @media (hover: none) and (pointer: coarse) {
-  kbd, .menu button kbd { display: none; }
+  kbd, .menu button kbd, .kbd-hint { display: none; }
   .row-actions { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -423,7 +436,7 @@ tr.enter td { animation: enter .3s var(--ease); }
         <svg class="i"><use href="#i-search"/></svg><span>Buscar o ejecutar…</span><kbd id="mod-key">⌘</kbd><kbd>K</kbd>
       </button>
       <div class="save-state" id="save-state" role="status"><i class="dot"></i><span>Todo guardado</span></div>
-      <button class="icon-btn" id="density-btn" title="Densidad (cómoda / compacta)" aria-label="Cambiar densidad"><svg class="i"><use href="#i-rows"/></svg></button>
+      <button class="icon-btn" id="density-btn" title="Densidad: cómoda → compacta → táctil" aria-label="Cambiar densidad"><svg class="i"><use href="#i-rows"/></svg></button>
       <button class="icon-btn" id="theme-btn" title="Tema" aria-label="Cambiar tema"><svg class="i"><use href="#i-monitor"/></svg></button>
       <button class="btn btn-primary" id="new-btn"><svg class="i"><use href="#i-plus"/></svg>Nueva<kbd>N</kbd></button>
     </header>
@@ -432,7 +445,7 @@ tr.enter td { animation: enter .3s var(--ease); }
       <div class="page-head">
         <div>
           <h1>Cotizaciones</h1>
-          <p>Edita cualquier valor con un click. Cambia el estado desde la etiqueta. <kbd>?</kbd> para ver atajos.</p>
+          <p>Edita cualquier valor con un click. Cambia el estado desde la etiqueta. <span class="kbd-hint"><kbd>?</kbd> para ver atajos.</span></p>
         </div>
         <div class="kpis">
           <div class="kpi"><small>Pipeline abierto</small><b class="num" id="kpi-open">$0</b></div>
@@ -848,7 +861,9 @@ function commands() {
     { label: 'Ver todas', icon: 'file', kbd: ['1'], run: () => setFilter('all') },
     ...STATUSES.map((s, i) => ({ label: `Filtrar: ${s.label}`, icon: 'flag', kbd: [String(i + 2)], run: () => setFilter(s.id) })),
     { label: 'Cambiar tema', icon: 'moon', kbd: ['T'], run: cycleTheme },
-    { label: 'Alternar densidad compacta', icon: 'rows', run: toggleDensity },
+    { label: 'Densidad cómoda', icon: 'rows', run: () => applyDensity('comfortable') },
+    { label: 'Densidad compacta', icon: 'rows', run: () => applyDensity('compact') },
+    { label: 'Densidad táctil (guantes, tableta)', icon: 'rows', run: () => applyDensity('touch') },
     { label: 'Ver estado: vacío', icon: 'layers', run: () => setView('empty') },
     { label: 'Ver estado: cargando', icon: 'layers', run: () => setView('loading') },
     { label: 'Ver estado: error', icon: 'layers', run: () => setView('error') },
@@ -937,10 +952,15 @@ function applyTheme(t) {
   store.set('proto-theme', t);
 }
 function cycleTheme() { const cur = store.get('proto-theme') || 'system'; const t = THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]; applyTheme(t); toast(`Tema: ${{ system: 'sistema', light: 'claro', dark: 'oscuro' }[t]}`); }
+const DENSITIES = ['comfortable', 'compact', 'touch'];
+function applyDensity(d) {
+  if (d === 'comfortable') delete document.documentElement.dataset.density; else document.documentElement.dataset.density = d;
+  store.set('proto-density', d);
+}
 function toggleDensity() {
-  const compact = document.documentElement.dataset.density !== 'compact';
-  if (compact) document.documentElement.dataset.density = 'compact'; else delete document.documentElement.dataset.density;
-  store.set('proto-density', compact ? 'compact' : 'comfortable');
+  const cur = document.documentElement.dataset.density || 'comfortable';
+  const d = DENSITIES[(DENSITIES.indexOf(cur) + 1) % DENSITIES.length];
+  applyDensity(d); toast(`Densidad: ${{ comfortable: 'cómoda', compact: 'compacta', touch: 'táctil' }[d]}`);
 }
 function setFilter(f, doRender = true) { S.filter = f; S.view = 'data'; store.set('proto-filter', f); if (doRender) render(); }
 function setView(v) {
@@ -1069,7 +1089,7 @@ function toggleHud() { hudEl.classList.toggle('hidden'); store.set('proto-hud', 
 $('#clients').innerHTML = [...new Set(DATA.map(r => r.client))].sort().map(c => `<option value="${esc(c)}">`).join('');
 $('#mod-key').textContent = MOD === '⌘' ? '⌘' : 'Ctrl';
 applyTheme(store.get('proto-theme') || 'system');
-if (store.get('proto-density') === 'compact') document.documentElement.dataset.density = 'compact';
+if (DENSITIES.includes(store.get('proto-density'))) applyDensity(store.get('proto-density'));
 if (store.get('proto-hud') === 'off') hudEl.classList.add('hidden');
 S.filter = store.get('proto-filter') || 'all';
 setInterval(() => { if (S.view === 'data') $$('#rows tr[data-id]').forEach(tr => { const r = byId(Number(tr.dataset.id)); const c = tr.querySelector('.c-updated'); if (r && c) c.textContent = ago(r.updated); }); }, 30000);

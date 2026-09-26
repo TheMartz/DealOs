@@ -3,7 +3,9 @@
  * flow_meter.js — Mide el Costo de Interacción (CI) de flujos reales con Playwright.
  *
  * Comandos:
- *   run <flow.json> [--out dir] [--headed]
+ *   run <flow.json> [--out dir] [--url URL] [--headed]
+ *       --url reemplaza la URL del flujo: corre el mismo flujo contra el prototipo y contra la app
+ *       en producción/staging para comprobar paridad (el CI no debe subir al pasar a tu stack).
  *       Ejecuta un flujo definido paso a paso, mide CI mecánico, latencias, modales,
  *       navegaciones y scrolls, y toma una captura por paso. Genera report.json + report.md.
  *
@@ -17,8 +19,9 @@
  *           --do '{"action":"scroll","dy":600}'      --do '{"action":"click","text":"Renovación flotilla"}'
  *           --do '{"action":"click","x":420,"y":288}' (coordenadas de la captura, como un humano)
  *
- *   compare <antes/report.json> <despues/report.json> [--out compare.md]
- *       Tabla antes/después con deltas.
+ *   compare <antes/report.json> <despues/report.json> [--out compare.md] [--parity]
+ *       Tabla antes/después con deltas. Con --parity (prototipo vs. implementación) el veredicto es
+ *       que el CI no suba, en lugar de la meta de −40% de un rediseño.
  *
  *   merge <report.json> <dudas.json>
  *       Suma las dudas de la prueba con personas al reporte: CI total = mecánico + 3 × dudas.
@@ -340,7 +343,8 @@ async function cmdRun(file, opt) {
   if (!flow.url || !Array.isArray(flow.steps)) die('El flujo necesita "url" y "steps".');
   const base = path.dirname(path.resolve(file));
   if (flow.storageState) flow.storageState = path.resolve(base, flow.storageState);
-  if (!/^[a-z]+:\/\//i.test(flow.url)) flow.url = path.resolve(base, flow.url);
+  if (opt.url) flow.url = /^[a-z]+:\/\//i.test(opt.url) ? opt.url : path.resolve(opt.url);
+  else if (!/^[a-z]+:\/\//i.test(flow.url)) flow.url = path.resolve(base, flow.url);
   const out = path.resolve(opt.out || `flow-report-${slug(flow.name)}`);
   fs.mkdirSync(path.join(out, 'shots'), { recursive: true });
   const browser = await launch(opt.headed);
@@ -479,7 +483,14 @@ function cmdCompare(a, b, opt) {
   for (const [l, k] of rows) L.push(`| ${l} | ${A.totals[k]} | ${B.totals[k]} | ${d(A.totals[k], B.totals[k])} |`);
   L.push(`| Hasta estable (incl. animaciones) | ${(A.totals.systemMs / 1000).toFixed(1)} s | ${(B.totals.systemMs / 1000).toFixed(1)} s | ${d(A.totals.systemMs, B.totals.systemMs)} |`);
   const red = A.totals.ciTotal ? Math.round((1 - B.totals.ciTotal / A.totals.ciTotal) * 100) : 0;
-  L.push('', red >= 40 ? `✓ Reducción de CI de ${red}% (meta ≥ 40%).` : red > 0 ? `⚠️ Reducción de CI de ${red}%: por debajo de la meta de 40%.` : `✗ El CI no bajó (${red}%).`);
+  if (opt.parity) {
+    const diff = B.totals.ciTotal - A.totals.ciTotal;
+    L.push('', diff <= 0 ? `✓ Paridad: la implementación cuesta ${diff < 0 ? `${-diff} menos` : 'lo mismo'} que el prototipo (CI ${B.totals.ciTotal}).`
+      : `✗ La implementación cuesta ${diff} más que el prototipo: revisa los pasos que cambiaron antes de publicar.`);
+    const changed = A.steps.map((s, i) => [i, s, B.steps[i]]).filter(([, a, b]) => !b || a.cost !== b.cost);
+    changed.forEach(([i, a, b]) => L.push(`- Paso ${i + 1} (${a.action} ${a.name || ''}): ${a.cost} → ${b ? b.cost : 'no existe'}`));
+    if (process.exitCode == null && diff > 0) process.exitCode = 3;
+  } else L.push('', red >= 40 ? `✓ Reducción de CI de ${red}% (meta ≥ 40%).` : red > 0 ? `⚠️ Reducción de CI de ${red}%: por debajo de la meta de 40%.` : `✗ El CI no bajó (${red}%).`);
   const md = L.join('\n') + '\n';
   if (opt.out) fs.writeFileSync(opt.out, md);
   console.log(md);
