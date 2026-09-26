@@ -1,0 +1,113 @@
+{
+  "_formato": "Cada texto trae variante 'tu' y 'usted' en formato ICU MessageFormat ({variable}, plural, select). 'uso' dice dónde va. Copia las claves al archivo de traducciones del proyecto y reemplaza {entidad}, {entidades} por los nombres reales del dominio.",
+
+  "acciones": {
+    "guardar": { "tu": "Guardar cambios", "usted": "Guardar cambios", "uso": "botón primario al editar" },
+    "crear": { "tu": "Crear {entidad}", "usted": "Crear {entidad}", "uso": "botón primario de alta" },
+    "crear_otro": { "tu": "Guardar y crear otra", "usted": "Guardar y crear otra", "uso": "captura en lote" },
+    "eliminar": { "tu": "Eliminar {entidad}", "usted": "Eliminar {entidad}", "uso": "acción destructiva reversible (con Deshacer)" },
+    "eliminar_definitivo": { "tu": "Eliminar para siempre", "usted": "Eliminar para siempre", "uso": "confirmación de algo irreversible" },
+    "conservar": { "tu": "Conservar", "usted": "Conservar", "uso": "cancelar un borrado" },
+    "enviar_a": { "tu": "Enviar a {destinatario}", "usted": "Enviar a {destinatario}", "uso": "envío externo" },
+    "pagar": { "tu": "Pagar {monto}", "usted": "Pagar {monto}", "uso": "checkout" },
+    "deshacer": { "tu": "Deshacer", "usted": "Deshacer", "uso": "acción del toast" },
+    "reintentar": { "tu": "Reintentar", "usted": "Reintentar", "uso": "tras un error recuperable" },
+    "descartar": { "tu": "Descartar cambios", "usted": "Descartar cambios", "uso": "salir sin guardar" },
+    "seguir_editando": { "tu": "Seguir editando", "usted": "Seguir editando", "uso": "cancelar la salida sin guardar" },
+    "limpiar_filtros": { "tu": "Limpiar filtros", "usted": "Limpiar filtros", "uso": "sin resultados" },
+    "pedir_acceso": { "tu": "Pedir acceso", "usted": "Solicitar acceso", "uso": "sin permiso" },
+    "ver_detalle": { "tu": "Ver {entidad}", "usted": "Ver {entidad}", "uso": "abrir un registro desde un aviso" }
+  },
+
+  "toasts": {
+    "guardado": { "tu": "Guardado", "usted": "Guardado", "uso": "indicador de autosave" },
+    "creado": { "tu": "Se creó {nombre}", "usted": "Se creó {nombre}", "uso": "tras crear" },
+    "eliminado": { "tu": "{count, plural, one {Se eliminó {nombre}} other {Se eliminaron # {entidades}}}", "usted": "{count, plural, one {Se eliminó {nombre}} other {Se eliminaron # {entidades}}}", "uso": "con acción Deshacer" },
+    "estado": { "tu": "{nombre} → {estado}", "usted": "{nombre} → {estado}", "uso": "cambio de estado, con Deshacer" },
+    "enviado": { "tu": "Se envió a {destinatario}", "usted": "Se envió a {destinatario}", "uso": "envío externo" },
+    "copiado": { "tu": "Copiado", "usted": "Copiado", "uso": "copiar al portapapeles" },
+    "deshecho": { "tu": "Se deshizo: {accion}", "usted": "Se deshizo: {accion}", "uso": "tras Deshacer o ⌘Z" },
+    "nada_que_deshacer": { "tu": "No hay nada que deshacer", "usted": "No hay nada que deshacer", "uso": "⌘Z sin historial" }
+  },
+
+  "errores": {
+    "sin_conexion": { "tu": "No hay conexión. Tus cambios se guardan aquí y se enviarán al reconectar.", "usted": "No hay conexión. Sus cambios se guardan aquí y se enviarán al reconectar.", "uso": "banner persistente" },
+    "servidor": { "tu": "Algo falló de nuestro lado y no se guardó el cambio. Inténtalo de nuevo en un momento; si sigue pasando, avísanos.", "usted": "Algo falló de nuestro lado y no se guardó el cambio. Inténtelo de nuevo en un momento; si continúa, avísenos.", "uso": "error 5xx" },
+    "tardando": { "tu": "Esto está tardando más de lo normal. Puedes esperar o reintentar; no se perderá lo que escribiste.", "usted": "Esto está tardando más de lo normal. Puede esperar o reintentar; no se perderá lo que escribió.", "uso": "timeout" },
+    "sin_permiso_accion": { "tu": "No tienes permiso para {accion}. Pídeselo a {responsable}.", "usted": "No tiene permiso para {accion}. Solicítelo a {responsable}.", "uso": "403 en una acción" },
+    "no_encontrado": { "tu": "No encontramos “{nombre}”. Puede que se haya eliminado o que el enlace esté incompleto.", "usted": "No encontramos “{nombre}”. Es posible que se haya eliminado o que el enlace esté incompleto.", "uso": "404" },
+    "conflicto": { "tu": "{persona} cambió {nombre} mientras lo editabas. Revisa sus cambios antes de guardar los tuyos.", "usted": "{persona} modificó {nombre} mientras usted lo editaba. Revise sus cambios antes de guardar los suyos.", "uso": "409 / edición simultánea" },
+    "sesion_expirada": { "tu": "Tu sesión terminó por seguridad. Vuelve a entrar; lo que escribiste sigue aquí.", "usted": "Su sesión terminó por seguridad. Vuelva a entrar; lo que escribió se conserva.", "uso": "401" },
+    "pago_rechazado": { "tu": "El banco rechazó la tarjeta. Revisa la fecha de vencimiento o usa otra tarjeta.", "usted": "El banco rechazó la tarjeta. Revise la fecha de vencimiento o use otra tarjeta.", "uso": "pago declinado" },
+    "archivo_pesado": { "tu": "El archivo pesa {tamano}; el máximo es {maximo}. Comprímelo o sube uno más ligero.", "usted": "El archivo pesa {tamano}; el máximo es {maximo}. Comprímalo o suba uno más ligero.", "uso": "subida de archivos" },
+    "archivo_tipo": { "tu": "Aceptamos {tipos}. Este archivo es {tipo}.", "usted": "Aceptamos {tipos}. Este archivo es {tipo}.", "uso": "subida de archivos" },
+    "limite_plan": { "tu": "Llegaste al límite de {limite} {entidades} de tu plan. Elimina alguna o cambia de plan.", "usted": "Llegó al límite de {limite} {entidades} de su plan. Elimine alguna o cambie de plan.", "uso": "límite de cuota" },
+    "carga_lista": { "tu": "No pudimos cargar {entidades}. Revisa tu conexión y reintenta.", "usted": "No pudimos cargar {entidades}. Revise su conexión y reintente.", "uso": "estado de error de una lista" }
+  },
+
+  "validacion": {
+    "requerido": { "tu": "Escribe {campo}", "usted": "Escriba {campo}", "uso": "junto al campo, al salir de él" },
+    "elegir": { "tu": "Elige {campo}", "usted": "Elija {campo}", "uso": "select o radio sin elegir" },
+    "correo": { "tu": "Revisa el correo: le falta la @ o el dominio (ej. ana@empresa.com)", "usted": "Revise el correo: le falta la @ o el dominio (ej. ana@empresa.com)", "uso": "email" },
+    "telefono": { "tu": "El teléfono debe tener 10 dígitos; escribiste {n}", "usted": "El teléfono debe tener 10 dígitos; escribió {n}", "uso": "teléfono MX" },
+    "rfc": { "tu": "El RFC tiene 12 o 13 caracteres (ej. ABC010203XYZ)", "usted": "El RFC tiene 12 o 13 caracteres (ej. ABC010203XYZ)", "uso": "RFC" },
+    "monto_minimo": { "tu": "El monto mínimo es {minimo}", "usted": "El monto mínimo es {minimo}", "uso": "montos" },
+    "fecha_futura": { "tu": "Elige una fecha a partir de hoy", "usted": "Elija una fecha a partir de hoy", "uso": "fechas" },
+    "duplicado": { "tu": "Ya existe {nombre} con ese {campo}. ¿Quieres abrirla?", "usted": "Ya existe {nombre} con ese {campo}. ¿Desea abrirla?", "uso": "detección de duplicados al escribir" },
+    "contrasena": { "tu": "Usa al menos 12 caracteres. Una frase fácil de recordar funciona bien.", "usted": "Use al menos 12 caracteres. Una frase fácil de recordar funciona bien.", "uso": "contraseña nueva" },
+    "formato_libre": { "tu": "Puedes escribir 98000, $98,000 o 98 mil", "usted": "Puede escribir 98000, $98,000 o 98 mil", "uso": "ayuda de campo tolerante" }
+  },
+
+  "vacios": {
+    "primera_vez_titulo": { "tu": "Todavía no hay {entidades}", "usted": "Todavía no hay {entidades}", "uso": "estado vacío" },
+    "primera_vez_texto": { "tu": "Aquí verás {beneficio}. Crea la primera en segundos.", "usted": "Aquí verá {beneficio}. Cree la primera en segundos.", "uso": "estado vacío" },
+    "sin_resultados_titulo": { "tu": "Nada coincide con “{busqueda}”", "usted": "Nada coincide con “{busqueda}”", "uso": "búsqueda sin resultados" },
+    "sin_resultados_texto": { "tu": "Prueba con otro término o quita filtros.", "usted": "Pruebe con otro término o quite filtros.", "uso": "búsqueda sin resultados" },
+    "al_dia_titulo": { "tu": "Estás al día", "usted": "Está al día", "uso": "bandeja o pendientes vacíos" },
+    "al_dia_texto": { "tu": "No hay {pendientes} por atender. Te avisaremos cuando llegue algo nuevo.", "usted": "No hay {pendientes} por atender. Le avisaremos cuando llegue algo nuevo.", "uso": "bandeja vacía" },
+    "sin_permiso_titulo": { "tu": "Esta sección es para {rol}", "usted": "Esta sección es para {rol}", "uso": "sin permiso" },
+    "sin_permiso_texto": { "tu": "Si la necesitas, pídele acceso a {responsable}.", "usted": "Si la necesita, solicite acceso a {responsable}.", "uso": "sin permiso" },
+    "filtro_vacio": { "tu": "No hay {entidades} en {estado}", "usted": "No hay {entidades} en {estado}", "uso": "filtro sin elementos" }
+  },
+
+  "confirmaciones": {
+    "eliminar_titulo": { "tu": "¿Eliminar {nombre} para siempre?", "usted": "¿Eliminar {nombre} para siempre?", "uso": "solo si es irreversible" },
+    "eliminar_texto": { "tu": "{dependientes, plural, =0 {Esto no se puede deshacer.} one {También se borrará # {dependiente}. Esto no se puede deshacer.} other {También se borrarán # {dependientes_nombre}. Esto no se puede deshacer.}}", "usted": "{dependientes, plural, =0 {Esta acción no se puede deshacer.} one {También se borrará # {dependiente}. Esta acción no se puede deshacer.} other {También se borrarán # {dependientes_nombre}. Esta acción no se puede deshacer.}}", "uso": "cuerpo del diálogo" },
+    "eliminar_masivo": { "tu": "Escribe {count} para confirmar que quieres eliminar {count} {entidades}", "usted": "Escriba {count} para confirmar que desea eliminar {count} {entidades}", "uso": "borrado masivo irreversible" },
+    "enviar_externo_titulo": { "tu": "¿Enviar {documento} a {destinatario}?", "usted": "¿Enviar {documento} a {destinatario}?", "uso": "envío que no se puede retirar" },
+    "enviar_externo_texto": { "tu": "Le llegará a {correo} y no se puede retirar.", "usted": "Le llegará a {correo} y no se puede retirar.", "uso": "cuerpo del diálogo" },
+    "salir_sin_guardar_titulo": { "tu": "Tienes cambios sin guardar", "usted": "Tiene cambios sin guardar", "uso": "al salir con cambios (si no hay autosave)" },
+    "salir_sin_guardar_texto": { "tu": "Si sales ahora, se perderán.", "usted": "Si sale ahora, se perderán.", "uso": "cuerpo del diálogo" }
+  },
+
+  "carga": {
+    "larga": { "tu": "Preparando {cosa}… suele tardar unos {segundos} segundos.", "usted": "Preparando {cosa}… suele tardar unos {segundos} segundos.", "uso": "procesos de más de 3 s (lo corto va con skeleton, sin texto)" },
+    "progreso": { "tu": "Importando {actual} de {total}", "usted": "Importando {actual} de {total}", "uso": "importaciones y lotes" },
+    "segundo_plano": { "tu": "Seguimos en segundo plano. Te avisaremos cuando termine.", "usted": "Continuamos en segundo plano. Le avisaremos cuando termine.", "uso": "procesos largos que no bloquean" }
+  },
+
+  "sincronizacion": {
+    "pendientes": { "tu": "{count, plural, one {# cambio pendiente de enviar} other {# cambios pendientes de enviar}}", "usted": "{count, plural, one {# cambio pendiente de enviar} other {# cambios pendientes de enviar}}", "uso": "modo offline" },
+    "al_dia": { "tu": "Todo sincronizado", "usted": "Todo sincronizado", "uso": "indicador de estado" },
+    "guardando": { "tu": "Guardando…", "usted": "Guardando…", "uso": "indicador de autosave" }
+  },
+
+  "onboarding": {
+    "bienvenida": { "tu": "Hola, {nombre}. Empecemos por {primer_paso}.", "usted": "Bienvenido, {nombre}. Comencemos por {primer_paso}.", "uso": "primera sesión (usted: ajusta el género o usa 'Hola')" },
+    "checklist_item": { "tu": "Crea tu primera {entidad}", "usted": "Cree su primera {entidad}", "uso": "checklist de primeros pasos" },
+    "datos_ejemplo": { "tu": "Estos son datos de ejemplo para que explores. Bórralos cuando quieras.", "usted": "Estos son datos de ejemplo para que explore. Puede borrarlos cuando quiera.", "uso": "primera vez con datos precargados" }
+  },
+
+  "notificaciones": {
+    "seguimiento": { "tu": "{cliente} no ha respondido en {dias} días. ¿Le escribes?", "usted": "{cliente} no ha respondido en {dias} días. ¿Desea escribirle?", "uso": "recordatorio accionable" },
+    "vencimiento": { "tu": "{documento} vence {cuando}", "usted": "{documento} vence {cuando}", "uso": "aviso con fecha relativa" },
+    "asignado": { "tu": "{persona} te asignó {nombre}", "usted": "{persona} le asignó {nombre}", "uso": "asignación" }
+  },
+
+  "ayuda": {
+    "atajo": { "tu": "{accion} ({tecla})", "usted": "{accion} ({tecla})", "uso": "tooltip de ícono" },
+    "default_explicado": { "tu": "Se llenó con el último {campo} que usaste", "usted": "Se llenó con el último {campo} que usó", "uso": "junto a un valor por default" },
+    "edicion_en_linea": { "tu": "Haz click en cualquier valor para editarlo. Enter guarda.", "usted": "Haga click en cualquier valor para editarlo. Enter guarda.", "uso": "pista en tablas editables" },
+    "ver_atajos": { "tu": "Presiona ? para ver los atajos", "usted": "Presione ? para ver los atajos", "uso": "pie de página o ayuda (ocultar en táctil)" }
+  }
+}

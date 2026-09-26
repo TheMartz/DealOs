@@ -18,6 +18,7 @@ type Props = {
   /** "Búsqueda = acción": si nada coincide bien, ofrecer crear con el texto escrito. */
   onCreate?: (text: string) => void
   createLabel?: (text: string) => string
+  placeholder?: string
 }
 
 type Item = { key: string; group: string; label: string; sub?: string; meta?: string; icon: LucideIcon; shortcut?: string; s: number; run: () => void }
@@ -27,7 +28,7 @@ type Item = { key: string; group: string; label: string; sub?: string; meta?: st
  * (shouldFilter={false}) y ordenar con nuestro puntaje: inicio de palabra gana a coincidencia interna
  * ("vacío" no debe encontrar primero "reno-vació-n").
  */
-export function CommandPalette({ open, onOpenChange, actions, records, recordsLabel, onCreate, createLabel }: Props) {
+export function CommandPalette({ open, onOpenChange, actions, records, recordsLabel, onCreate, createLabel, placeholder }: Props) {
   const [q, setQ] = useState("")
   const [value, setValue] = useState("")
 
@@ -57,7 +58,7 @@ export function CommandPalette({ open, onOpenChange, actions, records, recordsLa
           <CommandInput
             value={q}
             onValueChange={v => { setQ(v); setValue("") }}
-            placeholder="Busca un registro o escribe una acción…"
+            placeholder={placeholder ?? `Busca en ${recordsLabel.toLowerCase()} o escribe una acción…`}
           />
           <CommandList className="max-h-[min(420px,55vh)]">
             <CommandEmpty>Sin resultados para “{q}”</CommandEmpty>

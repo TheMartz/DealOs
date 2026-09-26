@@ -1,0 +1,32 @@
+{
+  "_ayuda": "Copia este archivo al repo como voice.json y ajústalo a la marca. Lo usan la biblioteca (qué variante elegir) y scripts/copy_lint.py (qué revisar). Las claves que empiezan con _ son comentarios.",
+  "marca": "Nombre de la marca",
+  "tratamiento": "tu",
+  "_tratamiento": "\"tu\" o \"usted\". Uno solo para todo el producto.",
+  "personalidad": ["clara", "cercana", "confiable"],
+  "_personalidad": "3 rasgos máximo. Describe cómo suena la marca en un día normal; en errores siempre manda la claridad.",
+  "no_somos": ["graciosa en los errores", "técnica", "exagerada"],
+  "exclamaciones": "solo_exito",
+  "_exclamaciones": "\"nunca\", \"solo_exito\" o \"libre\".",
+  "emojis": false,
+  "nunca": ["Oops", "Ups", "Error 500", "Ocurrió un error", "¿Está seguro?", "¿Estás seguro?", "Haga click aquí", "Haz click aquí", "exitosamente"],
+  "_nunca": "Palabras o frases prohibidas. El linter las marca como error.",
+  "glosario": {
+    "usuario": "cliente",
+    "registro": "cotización",
+    "ítem": "producto",
+    "borrar": "eliminar"
+  },
+  "_glosario": "Término a evitar → término de la marca. Mantiene un solo nombre para lo mismo.",
+  "limites": {
+    "boton_palabras": 3,
+    "boton_caracteres": 24,
+    "toast_caracteres": 80,
+    "titulo_caracteres": 60
+  },
+  "ejemplos": {
+    "exito": "La cotización ya está con Grupo Norte.",
+    "error": "No se guardó el cambio. Revisa tu conexión; lo que escribiste sigue aquí.",
+    "vacio": "Todavía no hay cotizaciones. Crea la primera en segundos."
+  }
+}
