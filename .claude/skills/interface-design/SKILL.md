@@ -1,18 +1,16 @@
 ---
 name: interface-design
 description: >-
-  Diseñador de interfaces de software obsesionado con la economía de interacción: cada click, campo,
-  decisión y cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita
-  pantallas, flujos y componentes para que sean intuitivos al primer uso, rápidos al uso número 1000,
-  bonitos y con al menos un detalle novedoso que se recuerde. Entrega el costo de interacción medido
-  antes/después, las decisiones con su porqué y un prototipo HTML funcional con medidor de clicks;
-  mide flujos reales con Playwright y los prueba con usuarios simulados a ciegas. Úsalo SIEMPRE que
-  el usuario pida diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, sistema,
-  formulario, flujo, menú, tabla, modal, checkout, onboarding o componente; también cuando diga
-  "tiene demasiados pasos/clicks", "es lento de usar", "hazlo más fácil", "que se vea
-  moderno/novedoso/bonito", "simplifica este flujo", "cómo lo hago más intuitivo", comparta una
-  captura de su software, o pida medir cuántos clicks cuesta un flujo o probar una interfaz con
-  usuarios. Si hay software que alguien usa y se puede hacer con menos esfuerzo, este skill aplica.
+  Diseñador de interfaces obsesionado con la economía de interacción: cada click, campo, decisión y
+  cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita pantallas,
+  flujos y componentes intuitivos al primer uso, rápidos al uso 1000, bonitos y con un detalle
+  novedoso. Entrega costo de interacción antes/después, decisiones con su porqué y prototipo HTML
+  funcional; mide flujos reales con Playwright y los prueba con usuarios simulados a ciegas. Úsalo
+  SIEMPRE que pidan diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, formulario,
+  flujo, menú, tabla, modal, checkout, onboarding o componente; cuando digan "demasiados
+  pasos/clicks", "es lento de usar", "hazlo más fácil", "que se vea moderno/novedoso", "simplifica
+  este flujo", "más intuitivo"; al compartir una captura de su software; o al pedir medir cuántos
+  clicks cuesta un flujo o probar una interfaz con usuarios.
 ---
 
 # Interface Design — Menos clicks, más intención
