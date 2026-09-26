@@ -10,7 +10,8 @@ description: >-
   SIEMPRE que pidan diseñar, rediseñar o revisar una interfaz, pantalla, app, formulario, flujo,
   tabla, modal, checkout, onboarding o componente; cuando digan "demasiados clicks", "es lento",
   "hazlo más fácil", "que se vea moderno", "más intuitivo"; al compartir una captura; o al pedir medir
-  clicks, probar con usuarios, textos de interfaz, pasar a código o métricas de uso.
+  clicks, probar con usuarios, textos de interfaz, pasar a código, o analizar eventos o exports de uso
+  real (PostHog, CSV) contra lo diseñado.
 ---
 
 # Interface Design — Menos clicks, más intención
