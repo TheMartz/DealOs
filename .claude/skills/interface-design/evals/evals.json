@@ -1,0 +1,58 @@
+{
+  "skill_name": "interface-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Este es el HTML de la pantalla de alta de cotizaciones de nuestro sistema interno: evals/files/alta-cotizacion.html. Los vendedores la usan unas 15 veces al día y se quejan de que es lenta y confusa. Rediséñala: quiero saber qué está mal, la propuesta y un prototipo que pueda probar.",
+      "files": [
+        "evals/files/alta-cotizacion.html"
+      ],
+      "expected_output": "Diagnóstico con costo de interacción antes/después (reducción ≥40%), propuesta sin pantalla aparte ni confirm(), microcopy real y un prototipo HTML funcional.",
+      "expectations": [
+        "La respuesta reporta el costo del flujo principal antes y después en números (CI, clicks o pasos)",
+        "La reducción reportada del costo del flujo principal es de al menos 40%",
+        "Se entrega un prototipo HTML en outputs/ que abre sin errores de JavaScript",
+        "El prototipo no usa confirm()/alert() nativos para guardar: aplica y da feedback no bloqueante (idealmente con Deshacer)",
+        "El prototipo permite crear la cotización sin navegar a una pantalla aparte (inline, panel o misma vista)",
+        "La respuesta incluye microcopy concreto: botones con verbo + objeto y al menos un mensaje de error o estado vacío",
+        "El costo se midió con una herramienta ejecutada (script/navegador) o se marcó explícitamente como estimado",
+        "La respuesta propone al menos un cambio que el usuario no pidió o señala un riesgo no evidente"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Diseña la pantalla de recepción de tarimas para nuestra planta: los operadores trabajan en cámaras de frío a -18 °C con guantes gruesos y una terminal Zebra TC52 con escáner integrado. Hoy anotan en papel: número de tarima, producto, lote, caducidad, peso y temperatura del producto. Entrégame el diseño y un prototipo navegable.",
+      "files": [],
+      "expected_output": "Diseño de una tarea por pantalla, escáner primero, targets ≥56px, sin texto libre en la ruta normal, offline con cola visible, confirmación multisensorial, estados de escaneo inválido/lote vencido y un prototipo HTML.",
+      "expectations": [
+        "Especifica o implementa targets táctiles de al menos 56 px para uso con guantes",
+        "La captura principal es por escáner (campo o manejador de lectura siempre listo), no por teclado",
+        "Aborda el trabajo sin conexión con cola o estado de sincronización visible",
+        "Las cantidades o valores numéricos se capturan sin teclado del sistema en la ruta normal (botones, stepper, teclado propio o dato del escáner/báscula)",
+        "Define confirmación de éxito/error más allá del texto (color de pantalla completa, sonido o vibración)",
+        "Diseña al menos un estado de error específico del dominio (tarima duplicada, lote vencido, temperatura fuera de rango o escaneo inválido)",
+        "Se entrega un prototipo HTML en outputs/ que abre sin errores de JavaScript",
+        "Considera contraste alto o condiciones de luz/condensación del entorno"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Revisa este componente antes de que mergeemos el PR: evals/files/ModalAltaCliente.tsx. El equipo siente que ahora cuesta más dar de alta un cliente. Dame los hallazgos y los cambios concretos, incluyendo los textos.",
+      "files": [
+        "evals/files/ModalAltaCliente.tsx"
+      ],
+      "expected_output": "Hallazgos con costo estimado: confirm vago, alert, botones genéricos, Error 500 y borrado del form, wizard de 3 pasos, select de 19 opciones sin búsqueda, botón deshabilitado, placeholders como etiqueta, Title Case; con cambios de código y textos reescritos.",
+      "expectations": [
+        "Señala el confirm('¿Está seguro?') y propone deshacer o una confirmación con la consecuencia concreta",
+        "Señala los botones genéricos ('Siguiente', 'Aceptar') y propone textos específicos",
+        "Señala el mensaje 'Error 500' y lo reescribe en lenguaje humano con qué hacer",
+        "Señala que el error borra lo que el usuario escribió (setForm al fallar) como problema",
+        "Cuestiona el wizard de 3 pasos y propone un solo formulario o menos pasos",
+        "Señala el select de régimen fiscal (19 opciones) sin búsqueda y propone combobox, default o deducción desde el RFC",
+        "Señala el botón deshabilitado hasta completar todo como problema de claridad",
+        "Cuantifica el impacto de los hallazgos (CI, clicks, campos o pasos) con números",
+        "Entrega cambios de código concretos (diff, fragmentos o archivo reescrito en outputs/)"
+      ]
+    }
+  ]
+}
