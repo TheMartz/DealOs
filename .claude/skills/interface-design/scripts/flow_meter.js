@@ -9,6 +9,12 @@
  *       Ejecuta un flujo definido paso a paso, mide CI mecánico, latencias, modales,
  *       navegaciones y scrolls, y toma una captura por paso. Genera report.json + report.md.
  *
+ *   check <flujos-dir|flow.json…> [--baseline ux/baseline] [--base-url URL] [--out dir]
+ *                                 [--summary resumen.md] [--tolerance 0] [--update-baseline]
+ *       Revisión de PR: corre todos los flujos, los compara contra la línea base y sale con 1 si
+ *       alguno cuesta más o dejó de completarse. Escribe un resumen Markdown para comentar en el PR
+ *       (y en $GITHUB_STEP_SUMMARY si existe). --base-url resuelve URLs relativas ("/cotizaciones").
+ *
  *   explore <sesion-dir> [--url URL] [--do JSON] [--viewport 1360x820] [--storage auth.json]
  *                       [--hide "#sel1,#sel2"] [--reset]
  *       Modo usuario simulado: abre la página, repite las acciones previas de la sesión,
@@ -217,7 +223,9 @@ async function measureStep(page, st, step, opts = {}) {
     return { inView: true, options: 0, name: (el?.getAttribute('aria-label') || el?.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60), tag: el?.tagName.toLowerCase() };
   }, [step.x, step.y]);
   if (loc && !['wait', 'goto'].includes(step.action)) {
-    await loc.waitFor({ state: 'attached', timeout });
+    await loc.waitFor({ state: 'attached', timeout }).catch(() => {
+      throw new Error(`No encontré ${typeof target === 'string' ? target : JSON.stringify(target)} en ${timeout / 1000} s (¿cambió el texto, el rol o desapareció la acción?)`);
+    });
     info = await describe(loc);
   }
   if (step.action === 'press') {
@@ -338,20 +346,25 @@ function renderReport(r) {
 }
 
 /* ---------------- Comando: run ---------------- */
-async function cmdRun(file, opt) {
+// Ejecuta un flujo y devuelve { report, out }. La usan `run` y `check`.
+async function runFlow(file, opt = {}) {
   const flow = readJSON(file);
-  if (!flow.url || !Array.isArray(flow.steps)) die('El flujo necesita "url" y "steps".');
+  if (!flow.url || !Array.isArray(flow.steps)) die(`${file}: el flujo necesita "url" y "steps".`);
   const base = path.dirname(path.resolve(file));
   if (flow.storageState) flow.storageState = path.resolve(base, flow.storageState);
-  if (opt.url) flow.url = /^[a-z]+:\/\//i.test(opt.url) ? opt.url : path.resolve(opt.url);
-  else if (!/^[a-z]+:\/\//i.test(flow.url)) flow.url = path.resolve(base, flow.url);
+  const isAbs = u => /^[a-z]+:\/\//i.test(u);
+  if (opt.url) flow.url = isAbs(opt.url) ? opt.url : path.resolve(opt.url);
+  // --base-url: las URLs relativas del flujo ("/cotizaciones") se resuelven contra la app en CI.
+  else if (opt['base-url'] && !isAbs(flow.url)) flow.url = new URL(flow.url, String(opt['base-url']).replace(/\/?$/, '/')).href;
+  else if (!isAbs(flow.url)) flow.url = path.resolve(base, flow.url);
   const out = path.resolve(opt.out || `flow-report-${slug(flow.name)}`);
   fs.mkdirSync(path.join(out, 'shots'), { recursive: true });
   const browser = await launch(opt.headed);
-  const { page, state } = await openPage(browser, flow);
   const steps = [];
-  let failed = null;
+  let failed = null, state = { errors: [] };
   try {
+    const opened = await openPage(browser, flow);
+    const page = opened.page; state = opened.state;
     for (const s of flow.setup || []) await measureStep(page, state, s);
     state.navs = 0;
     await page.screenshot({ path: path.join(out, 'shots', 'step-00.png') });
@@ -366,18 +379,107 @@ async function cmdRun(file, opt) {
         break;
       }
     }
+  } catch (e) {
+    failed = { step: 0, error: `No se pudo abrir ${flow.url}: ${e.message.split('\n')[0]}` };
   } finally { await browser.close(); }
   const vp = parseViewport(flow.viewport) || { width: 1360, height: 820 };
   const report = {
-    name: flow.name || path.basename(file), url: flow.url, viewport: vp, frequency: flow.frequency || null,
+    name: flow.name || path.basename(file), file: path.basename(file), url: flow.url, viewport: vp, frequency: flow.frequency || null,
     date: new Date().toISOString().slice(0, 16).replace('T', ' '), steps, doubts: [], failed, pageErrors: state.errors, shots: 'shots',
   };
   report.totals = totals(steps);
   writeJSON(path.join(out, 'report.json'), report);
   fs.writeFileSync(path.join(out, 'report.md'), renderReport(report));
+  return { report, out };
+}
+
+async function cmdRun(file, opt) {
+  const { report, out } = await runFlow(file, opt);
   console.log(renderReport(report));
   console.log(`→ ${path.relative(process.cwd(), out) || '.'}/report.md`);
-  if (failed) process.exitCode = 2;
+  if (report.failed) process.exitCode = 2;
+}
+
+/* ---------------- Comando: check (revisión de PR) ---------------- */
+// Corre todos los flujos y los compara contra la línea base. Sale con 1 si algún flujo cuesta más
+// (o dejó de completarse). Genera un resumen en Markdown listo para comentar en el PR.
+function listFlows(targets) {
+  const files = [];
+  for (const t of targets) {
+    const p = path.resolve(t);
+    if (fs.statSync(p).isDirectory()) {
+      for (const f of fs.readdirSync(p).sort()) if (f.endsWith('.json')) files.push(path.join(p, f));
+    } else files.push(p);
+  }
+  return files.filter(f => { try { const j = JSON.parse(fs.readFileSync(f, 'utf8')); return j.url && Array.isArray(j.steps); } catch { return false; } });
+}
+function stepDiff(A, B) {
+  const out = [];
+  const n = Math.max(A.steps.length, B.steps.length);
+  for (let i = 0; i < n; i++) {
+    const a = A.steps[i], b = B.steps[i];
+    const name = (b || a).name || (b || a).target || '';
+    if (!a) { out.push(`- Paso ${i + 1} nuevo (${b.action} ${name}): +${b.cost}`); continue; }
+    if (!b) { out.push(`- Paso ${i + 1} (${a.action} ${name}) no se alcanzó`); continue; }
+    const added = Object.keys(b.breakdown).filter(k => b.breakdown[k] > a.breakdown[k]).map(k => `+${b.breakdown[k] - a.breakdown[k]} ${LABEL[k]}`);
+    const removed = Object.keys(a.breakdown).filter(k => a.breakdown[k] > b.breakdown[k]).map(k => `−${a.breakdown[k] - b.breakdown[k]} ${LABEL[k]}`);
+    if (a.cost !== b.cost) out.push(`- Paso ${i + 1} (${b.action} ${name}): ${a.cost} → ${b.cost}${added.length || removed.length ? ` (${[...added, ...removed].join(', ')})` : ''}`);
+    const newFlags = b.flags.filter(f => !a.flags.includes(f) && !/^Cambio de pantalla/.test(f));
+    newFlags.forEach(f => out.push(`  - ⚠️ Nuevo en el paso ${i + 1}: ${f}`));
+    if (a.feedbackMs != null && b.feedbackMs != null && b.feedbackMs > DOHERTY_MS && a.feedbackMs <= DOHERTY_MS)
+      out.push(`  - 🐢 Paso ${i + 1}: la respuesta pasó de ${a.feedbackMs} ms a ${b.feedbackMs} ms`);
+  }
+  return out;
+}
+async function cmdCheck(targets, opt) {
+  const files = listFlows(targets);
+  if (!files.length) die('No encontré flujos (.json con "url" y "steps") en: ' + targets.join(', '));
+  const baseDir = path.resolve(opt.baseline || 'ux/baseline');
+  const outRoot = path.resolve(opt.out || 'flow-check');
+  const tol = Number(opt.tolerance || 0);
+  fs.mkdirSync(baseDir, { recursive: true });
+  const rows = [], details = [];
+  let bad = 0;
+  for (const f of files) {
+    const key = path.basename(f, '.json');
+    const { report: B } = await runFlow(f, { ...opt, out: path.join(outRoot, key) });
+    const baseFile = path.join(baseDir, `${key}.json`);
+    const A = fs.existsSync(baseFile) ? readJSON(baseFile) : null;
+    let status;
+    if (B.failed) { status = `❌ ya no se completa (paso ${B.failed.step})`; bad++; }
+    else if (!A) status = '🆕 sin línea base';
+    else {
+      const d = B.totals.ciTotal - A.totals.ciTotal;
+      status = d > tol ? (bad++, `❌ sube ${d}`) : d < 0 ? `✅ baja ${-d}` : '✅ igual';
+    }
+    const budget = BUDGET[B.frequency];
+    const over = B.totals.ciOverhead ?? B.totals.ciTotal;
+    const overCell = B.failed ? '—' : budget ? `${over}/${budget}${over > budget ? ' ⚠️' : ''}` : over;
+    rows.push(`| ${B.name} | ${A ? A.totals.ciTotal : '—'} | ${B.failed ? '—' : B.totals.ciTotal} | ${overCell} | ${status} |`);
+    const diff = A && !B.failed ? stepDiff(A, B) : [];
+    if (B.failed) details.push(`### ${B.name}`, '', `El paso ${B.failed.step} falló: ${B.failed.error}`, '', 'Un flujo que ya no se completa es la regresión más cara. Si el cambio fue intencional, actualiza el flow.json en este mismo PR.', '');
+    else if (diff.length) details.push(`### ${B.name}`, '', ...diff, '');
+    if (opt['update-baseline'] && !B.failed) writeJSON(baseFile, B);
+  }
+  const md = [
+    '<!-- interaction-cost -->',
+    '## Costo de interacción',
+    '',
+    '| Flujo | Base | Este cambio | Overhead / presupuesto | Resultado |',
+    '|---|---|---|---|---|',
+    ...rows,
+    '',
+    ...(details.length ? ['#### Qué cambió', '', ...details] : ['Ningún paso cambió de costo.', '']),
+    bad
+      ? `> ${bad} flujo${bad > 1 ? 's' : ''} empeoró. Si el aumento es intencional (regulación, seguridad, una decisión que debe ser consciente), explícalo en el PR y actualiza la línea base con \`flow_meter.js check … --update-baseline\`.`
+      : opt['update-baseline'] ? '> Línea base actualizada.' : '> Ningún flujo cuesta más que en la línea base.',
+    '',
+    `<sub>CI = click 1 · tecla 1 · campo 2 · decisión 2 · scroll 1 · modal 2 · pantalla 3. Capturas por paso en \`${path.relative(process.cwd(), outRoot) || '.'}/\`.</sub>`,
+  ].join('\n') + '\n';
+  if (opt.summary) fs.writeFileSync(path.resolve(opt.summary), md);
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+  console.log(md);
+  if (bad && !opt['update-baseline']) process.exitCode = 1;
 }
 
 /* ---------------- Comando: explore (usuario simulado) ---------------- */
@@ -511,6 +613,7 @@ function cmdMerge(rep, dudas) {
   const { pos, opt } = args(rest);
   try {
     if (cmd === 'run' && pos[0]) await cmdRun(pos[0], opt);
+    else if (cmd === 'check' && pos[0]) await cmdCheck(pos, opt);
     else if (cmd === 'explore' && pos[0]) await cmdExplore(pos[0], opt);
     else if (cmd === 'compare' && pos[1]) cmdCompare(pos[0], pos[1], opt);
     else if (cmd === 'merge' && pos[1]) cmdMerge(pos[0], pos[1]);
