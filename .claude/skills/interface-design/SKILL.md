@@ -2,15 +2,15 @@
 name: interface-design
 description: >-
   Diseñador de interfaces obsesionado con la economía de interacción: cada click, campo, decisión y
-  cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita pantallas y
-  flujos intuitivos al primer uso, rápidos al uso 1000, bonitos y con un detalle novedoso. Entrega
-  costo de interacción antes/después y prototipo HTML funcional; mide flujos reales con Playwright,
-  los prueba con usuarios simulados a ciegas, aplica recetas por producto (CRM, punto de venta,
-  bodega, back office, móvil) y lo lleva a React/shadcn verificando paridad. Úsalo SIEMPRE que pidan
-  diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, formulario, flujo, tabla, modal,
-  checkout, onboarding o componente; cuando digan "demasiados clicks", "es lento de usar", "hazlo más
-  fácil", "que se vea moderno", "más intuitivo"; al compartir una captura de su software; o al pedir
-  medir clicks de un flujo, probar con usuarios o pasar un prototipo a código.
+  pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita interfaces intuitivas,
+  rápidas, bonitas y con un detalle novedoso; entrega costo de interacción antes/después y prototipo
+  funcional. Mide flujos con Playwright, prueba con usuarios simulados a ciegas, aplica recetas por
+  producto (CRM, POS, bodega, back office, móvil), escribe microcopy con voz de marca, lleva el
+  prototipo a React/shadcn, bloquea PRs que agregan pasos y mide el uso real tras lanzar. Úsalo
+  SIEMPRE que pidan diseñar, rediseñar o revisar una interfaz, pantalla, app, formulario, flujo,
+  tabla, modal, checkout, onboarding o componente; cuando digan "demasiados clicks", "es lento",
+  "hazlo más fácil", "que se vea moderno", "más intuitivo"; al compartir una captura; o al pedir medir
+  clicks, probar con usuarios, textos de interfaz, pasar a código o métricas de uso.
 ---
 
 # Interface Design — Menos clicks, más intención
@@ -132,6 +132,11 @@ Toda pantalla tiene: **vacío · cargando · con datos · error · sin permiso**
 cuando aplique). El estado vacío es onboarding gratis: qué es, qué gana, botón del primer paso.
 Los errores dicen qué pasó, qué hacer, y **conservan lo que el usuario escribió**.
 
+Escribe los textos reales con las fórmulas de `references/microcopy.md` (botón = verbo + objeto, error =
+qué pasó + qué hacer, confirmación solo para lo irreversible). Parte de `assets/microcopy/library.es.json`
+(variantes tú/usted) y, si la marca tiene voz, de su `voice.json`. Pásalos por
+`python scripts/copy_lint.py <archivos> --voice voice.json` antes de entregar.
+
 ### 7. Prototipar
 Siempre entrega un prototipo interactivo, no una imagen. Parte de `assets/prototype-template.html`:
 ya trae tokens claro/oscuro, paleta de comandos ⌘K, toasts con deshacer, edición en línea, navegación
@@ -176,6 +181,18 @@ y verificado en `assets/react-shadcn/` (README con instalación).
 Comprueba la paridad con el mismo flujo contra ambas versiones:
 `flow_meter.js run flow.json --url <app>` y `compare proto.json app.json --parity`. El CI de la
 implementación no debe subir; si sube, la salida dice en qué paso. Vale la pena dejarlo en CI.
+
+### 10. Proteger y medir después de lanzar
+- **En cada PR**: `flow_meter.js check ux/flows --baseline ux/baseline` compara cada flujo contra su
+  línea base y falla si alguno cuesta más o dejó de completarse; `assets/ci/interaction-cost.yml` lo
+  corre en GitHub Actions y comenta el resultado en el PR. Para diffs sin flujo, revisa las señales de
+  `references/pr-interaction-review.md` (confirmaciones nuevas, campos obligatorios, pasos extra…).
+- **En producción**: instrumenta las tareas clave con `assets/metrics/ux-tracker.ts` (mismos pesos
+  del CI, sin datos personales) y analiza con `scripts/ux_metrics.py` o `assets/metrics/dashboard.html`:
+  éxito, tiempo, CI real contra diseñado, overhead contra presupuesto, abandono por paso, antes y
+  después de cada release. Guía completa en `references/post-launch-metrics.md`.
+- **Cierra el ciclo**: una brecha real contra el diseño es una pregunta. Confírmala con la persona
+  simulada o con usuarios, corrige, y protege la mejora actualizando la línea base.
 
 ---
 
@@ -239,6 +256,8 @@ sus usuarios mejor que tú.
 - [ ] ¿Un novato simulado, a ciegas, terminó la tarea sin atorarse?
 - [ ] ¿Apliqué la receta del tipo de producto (dispositivo, condiciones, presupuesto)?
 - [ ] Si ya está en código: ¿la paridad con el prototipo pasó (`compare --parity`)?
+- [ ] ¿Los textos pasaron `copy_lint.py` (sin botones genéricos ni errores sin salida)?
+- [ ] ¿Dejé los flujos clave listos para `check` en PRs y las tareas marcadas para medir en producción?
 
 ## Archivos de referencia
 
@@ -251,8 +270,16 @@ sus usuarios mejor que tú.
 | `references/simulated-user-testing.md` | Probar un flujo con personas simuladas a ciegas |
 | `references/product-recipes.md` | Siempre que el producto sea CRM, POS, bodega/campo, back office o app móvil |
 | `references/stack-translation.md` | Pasar un prototipo aprobado al stack del usuario |
+| `references/microcopy.md` | Siempre que escribas textos de interfaz (botones, errores, vacíos, confirmaciones) |
+| `references/pr-interaction-review.md` | Revisar un PR de interfaz o configurar la revisión automática |
+| `references/post-launch-metrics.md` | Instrumentar, medir y leer el uso real después de lanzar |
 | `assets/prototype-template.html` | Base de todo prototipo independiente |
 | `assets/react-shadcn/` | Port verificado a React + Tailwind v4 + shadcn/ui |
+| `assets/microcopy/` | Biblioteca de textos (tú/usted, ICU) y plantilla de voz de marca |
+| `assets/ci/` | Workflow de GitHub Actions y bloque para REVIEW.md |
+| `assets/metrics/` | `ux-tracker.ts` (medición en producción) y `dashboard.html` (tablero) |
 | `assets/flows/` | Ejemplos de `flow.json` (sistema anterior vs. prototipo) y fixture `antes-legacy.html` |
-| `scripts/flow_meter.js` | Medir CI real (`run`, `--url`), explorar como persona (`explore`), `compare` (`--parity`), `merge` |
+| `scripts/flow_meter.js` | Medir CI (`run`, `--url`), revisar PRs (`check`), explorar como persona (`explore`), `compare` (`--parity`), `merge` |
 | `scripts/contrast_check.py` | Validar contraste WCAG de la paleta |
+| `scripts/copy_lint.py` | Revisar textos contra las reglas de microcopy y la voz de marca |
+| `scripts/ux_metrics.py` | Analizar eventos de producción contra el diseño (`--demo` para datos de ejemplo) |
