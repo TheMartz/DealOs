@@ -722,18 +722,30 @@ function newRow(title = '') {
 }
 
 /* ---------- Edición en línea ---------- */
+// Guardar al perder foco re-dibuja la tabla y destruye el elemento que recibió el click.
+// Recordamos a qué se le hizo click (celda editable o acción de fila) para repetirlo tras el guardado.
 let pendingEdit = null;
 document.addEventListener('pointerdown', e => {
-  const ed = e.target.closest('.editable'); const tr = ed?.closest('tr[data-id]');
-  pendingEdit = ed && tr ? { id: Number(tr.dataset.id), field: ed.dataset.field, t: Date.now() } : null;
+  const tr = e.target.closest('#rows tr[data-id]');
+  const ed = e.target.closest('.editable'), act = e.target.closest('[data-action]');
+  pendingEdit = tr && (ed || act) ? { id: Number(tr.dataset.id), field: ed?.dataset.field, action: act?.dataset.action, t: Date.now() } : null;
 }, true);
+function replayPending(exceptId, exceptField) {
+  const p = pendingEdit; pendingEdit = null;
+  if (!p || Date.now() - p.t > 600 || (p.id === exceptId && p.field === exceptField)) return;
+  if (p.field) return startEdit(p.id, p.field);
+  const btn = $(`tr[data-id="${p.id}"] [data-action="${p.action}"]`);
+  if (p.action === 'status' && btn) openStatusMenu(btn, [p.id]);
+  else if (p.action === 'delete') removeRows([p.id]);
+  else if (p.action === 'duplicate') duplicate(p.id);
+}
 function startEdit(id, field) {
   const tr = $(`tr[data-id="${id}"]`); if (!tr) return;
   const span = tr.querySelector(`[data-field="${field}"]`); const r = byId(id); if (!span || !r) return;
   const input = document.createElement('input');
   input.className = 'cell-input' + (field === 'amount' ? ' num' : '');
   input.value = field === 'amount' ? (r.amount || '') : r[field];
-  if (field === 'amount') { input.inputMode = 'numeric'; input.placeholder = '$0'; }
+  if (field === 'amount') { input.placeholder = 'Ej. 98000 o 98 mil'; }
   else if (field === 'client') { input.placeholder = 'Cliente'; input.setAttribute('list', 'clients'); }
   else input.placeholder = `Nombre de la ${ENTITY.singular} · Enter guarda`;
   input.setAttribute('aria-label', { amount: 'Monto', client: 'Cliente', title: 'Título' }[field]);
@@ -744,7 +756,7 @@ function startEdit(id, field) {
     if (done) return; done = true;
     const raw = input.value.trim();
     if (field === 'title' && r.isNew && !raw) { DATA = DATA.filter(x => x !== r); render(); return; }
-    const val = field === 'amount' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
+    const val = field === 'amount' ? parseAmount(raw) : raw;
     if (save && val !== r[field] && !(field !== 'amount' && !raw)) {
       // Edición = feedback local (la celda destella) + indicador "Guardado"; ⌘Z deshace. Sin toast: se reserva para acciones de mayor consecuencia.
       commit(`editar ${{ amount: 'monto', client: 'cliente', title: 'título' }[field]}`, () => {
@@ -754,8 +766,7 @@ function startEdit(id, field) {
       $(`tr[data-id="${id}"] [data-field="${field}"]`)?.closest('td')?.classList.add('saved');
     } else { delete r.isNew; render(); }
     focusRow(id);
-    // Si el blur vino de un click sobre otro valor editable, ábrelo: el render reemplazó el elemento clicado.
-    if (pendingEdit && Date.now() - pendingEdit.t < 600 && !(pendingEdit.id === id && pendingEdit.field === field)) { const p = pendingEdit; pendingEdit = null; startEdit(p.id, p.field); }
+    replayPending(id, field);
   };
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); finish(true); }
@@ -763,6 +774,14 @@ function startEdit(id, field) {
     else if (e.key === 'Tab' && field === 'title') { e.preventDefault(); finish(true); startEdit(id, 'amount'); }
   });
   input.addEventListener('blur', () => finish(true));
+}
+
+// Ley de Postel: acepta "98000", "$98,000", "98 mil", "98k", "1.2 millones", "1.5m".
+function parseAmount(raw) {
+  const t = norm(raw).replace(/\s+/g, ' ').trim();
+  const mult = /(millon|millones|\bm\b|mm)/.test(t) ? 1e6 : /(mil|\bk\b|k$)/.test(t) ? 1e3 : 1;
+  const num = parseFloat(t.replace(/,/g, '').replace(/[^\d.]/g, '')) || 0;
+  return Math.round(num * mult);
 }
 
 /* ---------- Foco y selección ---------- */
@@ -796,12 +815,12 @@ function clearSelection() { S.selected.clear(); render(); }
 
 /* ---------- Menú de estado ---------- */
 let menuEl = null;
-function openStatusMenu(anchor, ids) {
+function openStatusMenu(anchor, ids, viaKeyboard = false) {
   closeMenu();
   const current = ids.length === 1 ? byId(ids[0])?.status : null;
   menuEl = document.createElement('div'); menuEl.className = 'menu'; menuEl.setAttribute('role', 'menu');
   menuEl.innerHTML = STATUSES.map((s, i) => `<button role="menuitem" data-status="${s.id}"><span class="pill tone-${s.tone}" style="pointer-events:none">${s.label}</span>
-    ${s.id === current ? '<svg class="i check"><use href="#i-check"/></svg>' : `<kbd>${i + 1}</kbd>`}</button>`).join('');
+    ${s.id === current ? '<svg class="i check"><use href="#i-check"/></svg>' : viaKeyboard ? `<kbd>${i + 1}</kbd>` : ''}</button>`).join('');
   document.body.append(menuEl);
   const rc = anchor.getBoundingClientRect(), mh = menuEl.offsetHeight;
   menuEl.style.left = Math.min(rc.left, innerWidth - menuEl.offsetWidth - 8) + 'px';
@@ -958,6 +977,7 @@ $('#rows').addEventListener('click', e => {
   if (e.target.matches('input[type="checkbox"]')) { toggleSelect(id, e.shiftKey); return; }
   const ed = e.target.closest('.editable'); if (ed) { pendingEdit = null; focusRow(id); startEdit(id, ed.dataset.field); return; }
   const act = e.target.closest('[data-action]')?.dataset.action;
+  pendingEdit = null;
   if (act === 'status') { focusRow(id); openStatusMenu(e.target.closest('[data-action]'), S.selected.has(id) ? [...S.selected] : [id]); return; }
   if (act === 'delete') { removeRows([id]); return; }
   if (act === 'duplicate') { duplicate(id); return; }
@@ -999,7 +1019,7 @@ document.addEventListener('keydown', e => {
     case 's': case 'S': {
       const ids = targetIds(); if (!ids.length) break; e.preventDefault();
       const anchor = S.selected.size ? $('[data-bulk="status"]') : $(`tr[data-id="${ids[0]}"] [data-action="status"]`);
-      if (anchor) openStatusMenu(anchor, ids); break;
+      if (anchor) openStatusMenu(anchor, ids, true); break;
     }
     case 'd': if (fid != null) { e.preventDefault(); duplicate(fid); } break;
     case 'Delete': case 'Backspace': { const ids = targetIds(); if (ids.length) { e.preventDefault(); const vis = visibleRows().map(r => r.id); const i = vis.indexOf(fid); removeRows(ids); const rest = visibleRows().map(r => r.id); if (rest.length) focusRow(rest[Math.min(Math.max(i, 0), rest.length - 1)]); } break; }

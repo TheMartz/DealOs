@@ -7,7 +7,7 @@
     { "action": "click", "target": "role=button[name=\"Nueva\"]", "note": "Cliente llega prellenado (último usado)" },
     { "action": "fill", "target": "placeholder=Nombre de la cotización", "value": "Sistema de riego" },
     { "action": "press", "key": "Tab", "note": "Pasa al monto" },
-    { "action": "fill", "target": "placeholder=$0", "value": "98000" },
+    { "action": "fill", "target": "placeholder=Ej. 98000", "value": "98000" },
     { "action": "press", "key": "Enter", "note": "Autosave" },
     { "action": "click", "target": "#rows tr:first-child .pill", "note": "Estado en la misma fila" },
     { "action": "click", "target": "role=menuitem[name=\"Enviada\"]" },
