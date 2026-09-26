@@ -4,14 +4,15 @@ description: >-
   Diseñador de interfaces de software obsesionado con la economía de interacción: cada click, campo,
   decisión y cambio de pantalla se cuenta, se justifica o se elimina. Diseña, rediseña y audita
   pantallas, flujos y componentes para que sean intuitivos al primer uso, rápidos al uso número 1000,
-  bonitos y con al menos un detalle novedoso que se recuerde. Entrega el costo de interacción
-  medido antes/después, las decisiones con su porqué y un prototipo HTML funcional con medidor de
-  clicks integrado. Úsalo SIEMPRE que el usuario pida diseñar, rediseñar, mejorar o revisar una
-  interfaz, pantalla, app, sistema, formulario, flujo, menú, tabla, modal, checkout, onboarding o
-  componente; y también cuando diga "tiene demasiados pasos/clicks", "es lento de usar", "hazlo más
-  fácil", "que se vea moderno/novedoso/bonito", "simplifica este flujo", "cómo lo hago más intuitivo"
-  o comparta una captura de su software. Si hay software que alguien usa y se puede hacer con menos
-  esfuerzo, este skill aplica.
+  bonitos y con al menos un detalle novedoso que se recuerde. Entrega el costo de interacción medido
+  antes/después, las decisiones con su porqué y un prototipo HTML funcional con medidor de clicks;
+  mide flujos reales con Playwright y los prueba con usuarios simulados a ciegas. Úsalo SIEMPRE que
+  el usuario pida diseñar, rediseñar, mejorar o revisar una interfaz, pantalla, app, sistema,
+  formulario, flujo, menú, tabla, modal, checkout, onboarding o componente; también cuando diga
+  "tiene demasiados pasos/clicks", "es lento de usar", "hazlo más fácil", "que se vea
+  moderno/novedoso/bonito", "simplifica este flujo", "cómo lo hago más intuitivo", comparta una
+  captura de su software, o pida medir cuántos clicks cuesta un flujo o probar una interfaz con
+  usuarios. Si hay software que alguien usa y se puede hacer con menos esfuerzo, este skill aplica.
 ---
 
 # Interface Design — Menos clicks, más intención
@@ -49,16 +50,22 @@ obvios cuestan menos que uno donde el usuario duda 5 segundos. Por eso no cuenta
 | Recordar dato de otra pantalla | 3 | Carga de memoria (reconocer > recordar) |
 | Duda ("¿esto es lo que busco?") | 3 | La más cara y la más invisible |
 
-**Presupuestos** (la tarea principal, desde que se abre la app):
+**Campos esenciales vs. overhead.** Capturar lo que *solo el usuario sabe* (el monto, el nombre del
+proyecto) no es fricción: es la tarea. Todo lo demás (abrir, navegar, elegir, confirmar, moverse entre
+campos, buscar) es **overhead**, y es lo que se presupuesta:
+`CI overhead = CI total − 2 × campos esenciales`.
 
-| Frecuencia de uso | CI objetivo de la tarea #1 | Prioridad de diseño |
+**Presupuestos de overhead** (la tarea principal, desde que se abre la app):
+
+| Frecuencia de uso | Overhead objetivo de la tarea #1 | Prioridad de diseño |
 |---|---|---|
 | Varias veces al día | ≤ 5 | Velocidad: atajos, defaults, acción en contexto, densidad |
 | Semanal | ≤ 8 | Equilibrio: rápido pero con etiquetas claras |
 | Mensual o menos | ≤ 12 | Claridad: guía, cero memoria requerida, textos explícitos |
 
 En un rediseño, apunta a **reducir el CI de la tarea #1 al menos 40%**. Si no se puede, explica por qué
-(normalmente regulación, seguridad o una decisión que sí debe ser consciente).
+(normalmente regulación, seguridad o una decisión que sí debe ser consciente). Un campo que el sistema
+podría deducir no es esencial: es un defecto.
 
 **Fricción intencional**: hay acciones que *deben* costar — borrar datos irrecuperables, pagos, envíos
 masivos. Ahí el esfuerzo es una característica. Pero prefiere siempre **deshacer** a **confirmar**:
@@ -136,6 +143,26 @@ el template es para prototipos independientes.
 Valida el contraste de tu paleta con `python scripts/contrast_check.py "#texto" "#fondo"` (acepta
 varios pares). Texto normal ≥ 4.5:1, texto grande e íconos ≥ 3:1.
 
+### 8. Medir y probar con usuarios simulados
+El CI calculado a mano es una estimación. Antes de entregar un rediseño o una auditoría, mídelo y
+pruébalo:
+
+1. **Medir el flujo real** con `scripts/flow_meter.js` (Playwright). Describe la ruta óptima de la tarea
+   #1 en un `flow.json` y ejecuta `node scripts/flow_meter.js run flow.json`. Funciona con el prototipo,
+   con `localhost` o con la URL de staging del usuario (con `storageState` para la sesión iniciada).
+   Cuenta clicks, campos, decisiones, scrolls, modales y pantallas; marca respuestas > 400 ms, acciones
+   sin feedback visible y `confirm()` nativos; guarda una captura por paso. Mide el "antes" y el
+   "después" y compáralos con `compare`. Hay ejemplos listos en `assets/flows/`.
+2. **Probar a ciegas con personas** (novato, experto con prisa, interrumpido en móvil) usando
+   `flow_meter.js explore`: cada persona ve solo capturas y elementos visibles, nunca el código, y
+   narra sus dudas. Protocolo, fichas y prompt en `references/simulated-user-testing.md`.
+3. **Fusionar**: `flow_meter.js merge report.json dudas.json` da el CI total (mecánico + 3 × dudas).
+   Corrige lo que salió, vuelve a medir y reporta la mejora con números.
+
+Escala al encargo: un componente suelto no necesita personas; un flujo principal o un rediseño sí.
+Si Playwright no está instalado, díselo al usuario con el comando (`npm i -D playwright && npx
+playwright install chromium`) y sigue con el CI estimado, marcándolo como estimado.
+
 ---
 
 ## Formato de entrega
@@ -145,13 +172,14 @@ Denso, accionable, sin relleno. Ajusta al encargo, pero por defecto:
 ```
 1. INTENCIÓN — quién, tarea #1, frecuencia, supuestos declarados (≤4 líneas)
 2. COSTO DE INTERACCIÓN — tabla del flujo: paso | CI antes | CI después | qué patrón lo resolvió
-   Total: CI 23 → 9 (−61%)
+   Total: CI 23 → 11 (−52%) · overhead 19 → 7 · medido con flow_meter.js (o "estimado")
 3. DECISIONES CLAVE — 3 a 6, cada una con su porqué (ley UX, dato o costo) en una línea
 4. MOMENTO FIRMA — el detalle novedoso y qué esfuerzo ahorra
 5. PROTOTIPO — funcional, con medidor de interacción
 6. ESTADOS Y MICROCOPY — textos reales de botones, vacíos y errores
-7. PROPUESTA +1 — algo que no pidió y que mejora el resultado, o el riesgo que no ha visto
-8. CÓMO MEDIRLO — 2-3 métricas: tiempo a tarea, tasa de éxito, CI real, errores
+7. PRUEBA CON PERSONAS — éxito y desvío por persona, dudas encontradas y qué se corrigió
+8. PROPUESTA +1 — algo que no pidió y que mejora el resultado, o el riesgo que no ha visto
+9. CÓMO MEDIRLO EN PRODUCCIÓN — 2-3 métricas: tiempo a tarea, tasa de éxito, CI real, errores
 ```
 
 Microcopy siempre incluido: verbos concretos en la voz del usuario ("Guardar cambios", no "Enviar";
@@ -193,6 +221,8 @@ sus usuarios mejor que tú.
 - [ ] ¿El momento firma ahorra esfuerzo, o solo luce?
 - [ ] ¿Se ve con criterio propio para este dominio, o como plantilla genérica?
 - [ ] ¿El prototipo es interactivo de verdad y usa datos realistas?
+- [ ] ¿Medí el CI con `flow_meter.js` o lo marqué como estimado?
+- [ ] ¿Un novato simulado, a ciegas, terminó la tarea sin atorarse?
 
 ## Archivos de referencia
 
@@ -202,5 +232,8 @@ sus usuarios mejor que tú.
 | `references/heuristics-and-laws.md` | Auditorías, capturas, justificar decisiones con leyes UX |
 | `references/visual-craft.md` | Definir o ajustar tokens, color, tipografía, espaciado, movimiento |
 | `references/novelty-playbook.md` | Elegir el momento firma y patrones nativos de IA |
+| `references/simulated-user-testing.md` | Probar un flujo con personas simuladas a ciegas |
 | `assets/prototype-template.html` | Base de todo prototipo independiente |
+| `assets/flows/` | Ejemplos de `flow.json` (sistema anterior vs. prototipo) y fixture `antes-legacy.html` |
+| `scripts/flow_meter.js` | Medir CI real (`run`), explorar como persona (`explore`), `compare`, `merge` |
 | `scripts/contrast_check.py` | Validar contraste WCAG de la paleta |

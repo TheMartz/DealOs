@@ -1,0 +1,16 @@
+{
+  "name": "Registrar cotización enviada · prototipo con atajos",
+  "url": "../prototype-template.html",
+  "frequency": "diaria",
+  "hide": ["#hud"],
+  "steps": [
+    { "action": "press", "key": "n" },
+    { "action": "fill", "value": "Sistema de riego", "note": "El foco ya está en el título" },
+    { "action": "press", "key": "Tab" },
+    { "action": "fill", "value": "98000" },
+    { "action": "press", "key": "Enter" },
+    { "action": "press", "key": "s" },
+    { "action": "press", "key": "2", "note": "Enviada" },
+    { "action": "expect", "target": "#rows tr:first-child .tone-info" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Registrar cotización enviada · sistema anterior",
+  "url": "antes-legacy.html",
+  "frequency": "diaria",
+  "steps": [
+    { "action": "click", "target": "role=button[name=\"Nueva cotización\"]" },
+    { "action": "select", "target": "label=Cliente", "value": "Grupo Norte", "note": "Buscar entre 13 opciones" },
+    { "action": "fill", "target": "label=Título", "value": "Sistema de riego" },
+    { "action": "fill", "target": "label=Monto", "value": "98000" },
+    { "action": "select", "target": "label=Estado", "value": "Enviada" },
+    { "action": "click", "target": "role=button[name=\"Guardar\"]", "note": "Dispara confirm()" },
+    { "action": "click", "target": "role=button[name=\"Aceptar\"]", "note": "Modal de éxito" },
+    { "action": "expect", "target": "text=Sistema de riego" }
+  ]
+}
