@@ -506,7 +506,7 @@ tr.enter td { animation: enter .3s var(--ease); }
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <datalist id="clients"></datalist>
 
-<aside class="hud" id="hud" aria-label="Medidor de interacción">
+<aside class="hud hidden" id="hud" aria-label="Medidor de interacción">
   <header><svg class="i"><use href="#i-gauge"/></svg>Medidor<kbd>`</kbd></header>
   <div class="hud-stats">
     <div><b id="h-clicks">0</b><span>clicks</span></div>
@@ -1090,7 +1090,7 @@ $('#clients').innerHTML = [...new Set(DATA.map(r => r.client))].sort().map(c => 
 $('#mod-key').textContent = MOD === '⌘' ? '⌘' : 'Ctrl';
 applyTheme(store.get('proto-theme') || 'system');
 if (DENSITIES.includes(store.get('proto-density'))) applyDensity(store.get('proto-density'));
-if (store.get('proto-hud') === 'off') hudEl.classList.add('hidden');
+if (store.get('proto-hud') === 'on') hudEl.classList.remove('hidden'); // oculto por defecto: es herramienta de diseño, no producto
 S.filter = store.get('proto-filter') || 'all';
 setInterval(() => { if (S.view === 'data') $$('#rows tr[data-id]').forEach(tr => { const r = byId(Number(tr.dataset.id)); const c = tr.querySelector('.c-updated'); if (r && c) c.textContent = ago(r.updated); }); }, 30000);
 render();

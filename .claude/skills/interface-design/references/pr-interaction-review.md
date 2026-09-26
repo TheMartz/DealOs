@@ -90,6 +90,15 @@ en el diff. Cada una tiene la pregunta que debes hacer y la alternativa habitual
 | `hover:` como única forma de ver una acción en móvil | Inalcanzable en táctil | ¿Hay alternativa táctil? | Visible en `(hover: none)` |
 | Re-render de lista completa al guardar (innerHTML, key por índice) | Clicks perdidos durante la edición | ¿Las keys son estables? | Keys por id; repetir el objetivo del click |
 
+**Al quitar una confirmación, di siempre qué la reemplaza.** Borrarla sin red de seguridad no es la
+corrección completa: en una creación, toast "Cliente creado · Deshacer" (borra el recién creado); en una
+edición, Deshacer que restaura el valor anterior; si es irreversible, confirmación con la consecuencia.
+
+**Revisa también el dominio, no solo la UX.** Catálogos oficiales vigentes (p. ej. claves fiscales que
+ya no existen), `<option>` sin `value` que mandan la etiqueta en vez de la clave, formatos (RFC, CURP,
+fechas) y cualquier cambio en lo que el componente envía a la API. Si tu versión corregida cambia el
+contrato con el backend, dilo explícitamente como hallazgo.
+
 Estima el impacto con los pesos del CI (click 1 · campo 2 · decisión 2 · modal 2 · pantalla 3 ·
 duda 3) y multiplícalo por la frecuencia: +2 en una tarea diaria de 40 usuarios son ~80 interacciones
 extra por día.

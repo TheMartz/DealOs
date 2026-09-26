@@ -112,7 +112,8 @@ elige de pocas opciones o se ajusta con botones.
 **Pantalla que gana.**
 - **Una tarea por pantalla**, con la instrucción en grande ("Escanea la tarima"), el dato clave en
   64-96 px y un solo botón primario a todo lo ancho en la zona inferior.
-- Targets ≥ 56 px (≥ 64 px con guantes gruesos) y separación ≥ 12 px. Texto base ≥ 18 px.
+- Targets ≥ 56 px (≥ 64 px con guantes gruesos) y separación ≥ 12 px en **todo** control tocable,
+  incluidos contadores del encabezado, Deshacer, Cancelar y volver. Texto base ≥ 18 px.
 - Contraste alto (≥ 7:1 para lo esencial) y modo "exterior" de fondo claro con texto negro; el modo
   oscuro se lee mal bajo el sol.
 

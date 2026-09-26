@@ -74,7 +74,20 @@ un "¿Seguro?" cuesta en cada uso; un "Deshacer" solo cuando te equivocas.
 
 ## Proceso
 
-Ajusta la profundidad al encargo. Un componente usa los pasos 1, 4 y 6; una app completa, todos.
+**Elige el modo antes de empezar.** El proceso completo tarda 4 veces más que una respuesta normal;
+úsalo solo cuando el encargo lo pida. Por defecto, **modo rápido**.
+
+| Modo | Cuándo | Qué haces | Qué lees |
+|---|---|---|---|
+| **Rápido** (defecto) | Diseñar o rediseñar una pantalla, componente o flujo | Pasos 1-7. CI **estimado** a mano y marcado como tal. Sin Playwright, sin personas, sin linter | Solo la receta del producto (si aplica) y `click-reduction-patterns.md`. Lo demás, solo si te atoras |
+| **Revisión** | Revisar código, un PR o una captura | Hallazgos por costo (paso 2 + `pr-interaction-review.md`) con CI estimado, textos corregidos y el código cambiado | `pr-interaction-review.md` y `microcopy.md` |
+| **Completo** | El usuario pide medir, probar con usuarios, validar antes de lanzar, o es la tarea #1 de una app de uso diario y lo acepta | Todo, incluido el paso 8 (medición, personas, `copy_lint`, contraste) | Lo que indique cada paso |
+| **Producción** | Pasar a código, CI en PRs, métricas de uso real | Pasos 9-10 | `stack-translation.md`, `post-launch-metrics.md` |
+
+Al terminar en modo rápido, ofrece en una línea el siguiente nivel ("¿Lo mido con Playwright y lo pruebo
+con 3 personas simuladas? Toma ~15 min"). No leas archivos "por si acaso": cada referencia cuesta tiempo
+al usuario.
+
 No hagas más de 3 preguntas antes de proponer: si falta información, **asume, decláralo y diseña**
 ("asumo que lo usa un vendedor 10+ veces al día desde laptop"). Un diseño concreto con supuestos
 visibles genera mejor feedback que un cuestionario.
@@ -91,8 +104,8 @@ una cambia qué es esfuerzo, el presupuesto de la tarea #1, los patrones que gan
 ### 2. Auditar el flujo actual (si existe)
 Escribe el flujo paso a paso y ponle CI a cada paso. Marca los pasos con 🔴 si son eliminables,
 🟡 si se pueden fusionar o automatizar, 🟢 si son esenciales. Si el usuario compartió una captura o
-código, audita también con `references/heuristics-and-laws.md` y entrega **los 5 problemas más caros**
-(costo × frecuencia), no 30 detalles.
+código, entrega **los 5 problemas más caros** (costo × frecuencia), no 30 detalles. Consulta
+`references/heuristics-and-laws.md` solo si necesitas justificar una decisión con una ley UX.
 
 ### 3. Eliminar antes de diseñar
 Pasa cada paso por esta escalera, en orden. Detente en el primer peldaño que funcione:
@@ -119,8 +132,9 @@ El catálogo con 40+ patrones concretos, cuándo usarlos y cuándo **no**, está
 - **Feedback < 100 ms** en toda interacción; optimistic UI para lo que tarda.
 
 ### 5. Hacerla bonita y novedosa
-Lee `references/visual-craft.md` para tokens, tipografía, color, movimiento y densidad.
-Lee `references/novelty-playbook.md` para elegir el **momento firma**: 1 o 2 detalles novedosos que
+La plantilla ya trae tokens, tipografía y movimiento: úsalos. Lee `references/visual-craft.md` solo si
+el dominio pide otra dirección visual, y `references/novelty-playbook.md` solo si no tienes claro el
+**momento firma**: 1 o 2 detalles novedosos que
 hacen la interfaz memorable *y* ahorran esfuerzo (p. ej. ghost-text predictivo, paleta de comandos con
 lenguaje natural, arrastrar para asignar, preview al hover). Un momento firma que no reduce esfuerzo ni
 aclara nada es decoración; descártalo.
@@ -135,26 +149,26 @@ Los errores dicen qué pasó, qué hacer, y **conservan lo que el usuario escrib
 
 Escribe los textos reales con las fórmulas de `references/microcopy.md` (botón = verbo + objeto, error =
 qué pasó + qué hacer, confirmación solo para lo irreversible). Parte de `assets/microcopy/library.es.json`
-(variantes tú/usted) y, si la marca tiene voz, de su `voice.json`. Pásalos por
-`python scripts/copy_lint.py <archivos> --voice voice.json` antes de entregar.
+(variantes tú/usted) y, si la marca tiene voz, de su `voice.json`. En modo revisión o completo, pásalos
+por `python scripts/copy_lint.py <archivos> --voice voice.json` antes de entregar.
 
 ### 7. Prototipar
 Siempre entrega un prototipo interactivo, no una imagen. Parte de `assets/prototype-template.html`:
 ya trae tokens claro/oscuro, paleta de comandos ⌘K, toasts con deshacer, edición en línea, navegación
-por teclado y el **Medidor de interacción** (tecla `` ` ``), que cuenta clicks, teclas y tiempo para
-que el usuario compruebe el CI en vivo, y densidades cómoda, compacta y **táctil** (targets de 56-64 px
+por teclado y el **Medidor de interacción** (oculto; se abre con la tecla `` ` ``), que cuenta clicks,
+teclas y tiempo para que el usuario compruebe el CI en vivo, y densidades cómoda, compacta y **táctil** (targets de 56-64 px
 para guantes y tabletas). Reemplaza los datos de ejemplo por datos realistas del dominio del usuario,
 en español: "Item 1" y "Lorem ipsum" impiden juzgar el diseño.
 
 Si el proyecto ya tiene stack (React, Vue, Tailwind, un design system), respétalo y construye en él
 desde el principio: la plantilla es para prototipos independientes y el paso 9 explica cómo traducir.
 
-Valida el contraste de tu paleta con `python scripts/contrast_check.py "#texto" "#fondo"` (acepta
-varios pares). Texto normal ≥ 4.5:1, texto grande e íconos ≥ 3:1.
+Si cambiaste la paleta, valida el contraste con `python scripts/contrast_check.py "#texto" "#fondo"`
+(acepta varios pares). Texto normal ≥ 4.5:1, texto grande e íconos ≥ 3:1.
 
-### 8. Medir y probar con usuarios simulados
-El CI calculado a mano es una estimación. Antes de entregar un rediseño o una auditoría, mídelo y
-pruébalo:
+### 8. Medir y probar con usuarios simulados (modo completo)
+El CI calculado a mano es una estimación, suficiente para decidir en modo rápido. Cuando el usuario
+pide validar, medir o probar, o acepta el modo completo:
 
 1. **Medir el flujo real** con `scripts/flow_meter.js` (Playwright). Describe la ruta óptima de la tarea
    #1 en un `flow.json` y ejecuta `node scripts/flow_meter.js run flow.json`. Funciona con el prototipo,
@@ -207,9 +221,9 @@ Denso, accionable, sin relleno. Ajusta al encargo, pero por defecto:
    Total: CI 23 → 11 (−52%) · overhead 19 → 7 · medido con flow_meter.js (o "estimado")
 3. DECISIONES CLAVE — 3 a 6, cada una con su porqué (ley UX, dato o costo) en una línea
 4. MOMENTO FIRMA — el detalle novedoso y qué esfuerzo ahorra
-5. PROTOTIPO — funcional, con medidor de interacción
+5. PROTOTIPO — funcional (medidor oculto con la tecla `)
 6. ESTADOS Y MICROCOPY — textos reales de botones, vacíos y errores
-7. PRUEBA CON PERSONAS — éxito y desvío por persona, dudas encontradas y qué se corrigió
+7. PRUEBA CON PERSONAS — solo en modo completo; en rápido, una línea ofreciéndola
 8. PROPUESTA +1 — algo que no pidió y que mejora el resultado, o el riesgo que no ha visto
 9. CÓMO MEDIRLO EN PRODUCCIÓN — 2-3 métricas: tiempo a tarea, tasa de éxito, CI real, errores
 ```
@@ -254,11 +268,12 @@ sus usuarios mejor que tú.
 - [ ] ¿Se ve con criterio propio para este dominio, o como plantilla genérica?
 - [ ] ¿El prototipo es interactivo de verdad y usa datos realistas?
 - [ ] ¿Medí el CI con `flow_meter.js` o lo marqué como estimado?
-- [ ] ¿Un novato simulado, a ciegas, terminó la tarea sin atorarse?
+- [ ] Modo completo: ¿un novato simulado, a ciegas, terminó la tarea sin atorarse?
 - [ ] ¿Apliqué la receta del tipo de producto (dispositivo, condiciones, presupuesto)?
 - [ ] Si ya está en código: ¿la paridad con el prototipo pasó (`compare --parity`)?
-- [ ] ¿Los textos pasaron `copy_lint.py` (sin botones genéricos ni errores sin salida)?
-- [ ] ¿Dejé los flujos clave listos para `check` en PRs y las tareas marcadas para medir en producción?
+- [ ] ¿Ningún botón genérico ni error sin salida? (en revisión/completo: `copy_lint.py`)
+- [ ] Modo producción: ¿dejé los flujos listos para `check` y las tareas marcadas para medir?
+- [ ] ¿Validé las reglas del dominio (catálogos oficiales, formatos, contrato con la API) y no solo la UX?
 
 ## Archivos de referencia
 
